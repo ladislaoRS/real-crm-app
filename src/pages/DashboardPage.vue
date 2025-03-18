@@ -11,11 +11,11 @@
               <h2 class="text-lg font-semibold">Contacts</h2>
               <q-icon name="people" size="md" color="primary" />
             </div>
-            <div v-if="contactsStore.loading" class="mt-2">
+            <div v-if="contactsLoading" class="mt-2">
               <q-spinner-dots color="primary" />
             </div>
             <div v-else class="text-3xl font-bold mt-2">
-              {{ contactsStore.pagination.total || 0 }}
+              {{ totalContacts }}
             </div>
           </q-card-section>
           <q-card-actions>
@@ -49,19 +49,21 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from 'src/stores/auth.store'
-import { useContactsStore } from 'src/stores/contacts.store'
+import api from 'src/services/api.service'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
-const contactsStore = useContactsStore()
+const totalContacts = ref(0)
+const contactsLoading = ref(true)
 
 onMounted(async () => {
   try {
-    // Fetch contacts to get the total count
-    await contactsStore.fetchContacts()
+    // Directly fetch contact count without using the store
+    // This avoids filter persistence issues
+    await fetchTotalContacts()
   } catch (error) {
     console.error('Failed to fetch contacts:', error)
     $q.notify({
@@ -71,4 +73,17 @@ onMounted(async () => {
     })
   }
 })
+
+// Fetch total contacts directly, bypassing the store's filters
+const fetchTotalContacts = async () => {
+  contactsLoading.value = true
+  try {
+    const response = await api.getContacts(1, '', null) // no search, no filter
+    totalContacts.value = response.data.meta.total
+  } catch (error) {
+    console.error('Error fetching total contacts:', error)
+  } finally {
+    contactsLoading.value = false
+  }
+}
 </script>

@@ -2,148 +2,188 @@
   <q-page class="bg-gray-100 min-h-screen">
     <div class="container mx-auto py-6 px-4">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Contacts</h1>
-        <q-btn color="primary" icon="add" label="Create Contact" @click="navigateToCreate" />
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-gray-800">Contacts</h1>
+        <q-btn round color="primary" icon="add" @click="navigateToCreate" />
       </div>
 
-      <!-- Filters -->
-      <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="flex-grow">
-            <q-input
-              v-model="search"
-              placeholder="Search contacts..."
-              clearable
-              dense
-              @update:model-value="onSearchDebounced"
+      <!-- Search -->
+      <div class="bg-white rounded-lg shadow-sm mb-4">
+        <q-input
+          v-model="search"
+          placeholder="Search contacts..."
+          clearable
+          dense
+          class="q-pa-sm"
+          @update:model-value="debouncedSearch"
+          :loading="searchLoading"
+          bg-color="white"
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" />
+          </template>
+          <template v-slot:append>
+            <q-icon
+              v-if="contactsStore.filters.trashed"
+              name="filter_alt"
+              class="cursor-pointer"
+              color="primary"
+              @click="openFilterMenu"
+            />
+            <q-icon v-else name="filter_alt" class="cursor-pointer" @click="openFilterMenu" />
+          </template>
+        </q-input>
+      </div>
+
+      <!-- Main Content -->
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- Loading state -->
+        <template v-if="contactsStore.loading && !hasLoadedInitially">
+          <div class="p-2">
+            <q-list separator>
+              <q-item v-for="i in 7" :key="i" class="q-py-md">
+                <q-item-section avatar>
+                  <q-skeleton type="circle" size="40px" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>
+                    <q-skeleton type="text" width="40%" />
+                  </q-item-label>
+                  <q-item-label caption>
+                    <q-skeleton type="text" width="70%" />
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-skeleton type="text" width="30px" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+        </template>
+
+        <!-- Error state -->
+        <template v-else-if="contactsStore.error">
+          <div class="bg-red-100 border border-red-400 text-red-700 p-4">
+            {{ contactsStore.error }}
+            <div class="mt-3">
+              <q-btn color="primary" @click="fetchContacts">Retry</q-btn>
+            </div>
+          </div>
+        </template>
+
+        <!-- Empty state -->
+        <template v-else-if="contactsStore.contacts.length === 0">
+          <div class="p-8 text-center">
+            <div class="text-gray-500 mb-4">No contacts found.</div>
+            <q-btn color="primary" label="Create Your First Contact" @click="navigateToCreate" />
+          </div>
+        </template>
+
+        <!-- Contact list (WhatsApp style) -->
+        <template v-else>
+          <q-list separator class="contact-list" v-if="!tableLoading">
+            <q-item
+              v-for="contact in contactsStore.contacts"
+              :key="contact.id"
+              clickable
+              v-ripple
+              @click="navigateToEdit(contact.id)"
+              :class="{ 'deleted-contact': contact.deleted_at }"
             >
-              <template v-slot:prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
+              <q-item-section avatar>
+                <q-avatar color="primary" text-color="white">
+                  {{ getInitials(contact.name) }}
+                </q-avatar>
+              </q-item-section>
+
+              <q-item-section>
+                <q-item-label class="text-weight-medium">
+                  {{ contact.name }}
+                  <q-badge v-if="contact.deleted_at" color="red" text-color="white" class="q-ml-sm"
+                    >Deleted</q-badge
+                  >
+                </q-item-label>
+                <q-item-label caption>
+                  {{ contact.organization ? contact.organization.name : 'No organization' }}
+                </q-item-label>
+              </q-item-section>
+
+              <q-item-section side>
+                <q-item-label caption>
+                  {{ formatDate(contact.updated_at) }}
+                </q-item-label>
+                <div class="row items-center no-wrap q-mt-xs">
+                  <q-btn
+                    v-if="!contact.deleted_at"
+                    flat
+                    round
+                    dense
+                    size="sm"
+                    color="negative"
+                    icon="delete"
+                    @click.stop="confirmDelete(contact)"
+                  />
+                  <q-btn
+                    v-else
+                    flat
+                    round
+                    dense
+                    size="sm"
+                    color="positive"
+                    icon="restore"
+                    @click.stop="confirmRestore(contact)"
+                  />
+                </div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+
+          <div v-else class="flex justify-center items-center p-4">
+            <q-spinner color="primary" size="2em" />
           </div>
 
-          <div>
-            <q-select
-              v-model="trashedFilter"
-              :options="[
-                { label: 'Default', value: null },
-                { label: 'With Trashed', value: 'with' },
-                { label: 'Only Trashed', value: 'only' },
-              ]"
-              label="Filter"
-              dense
-              options-dense
-              @update:model-value="onFilterChange"
+          <!-- Pagination controls -->
+          <div class="flex justify-center p-3 bg-gray-50">
+            <q-pagination
+              v-model="currentPage"
+              :max="contactsStore.pagination.lastPage"
+              :max-pages="6"
+              direction-links
+              boundary-links
+              @update:model-value="onPageChange"
             />
           </div>
-
-          <div v-if="contactsStore.filters.search || contactsStore.filters.trashed">
-            <q-btn flat color="primary" label="Reset" @click="resetFilters" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading state -->
-      <div v-if="contactsStore.loading" class="flex justify-center my-12">
-        <q-spinner color="primary" size="3em" />
-      </div>
-
-      <!-- Error state -->
-      <div
-        v-else-if="contactsStore.error"
-        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
-      >
-        {{ contactsStore.error }}
-        <div class="mt-3">
-          <q-btn color="primary" @click="fetchContacts">Retry</q-btn>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div
-        v-else-if="contactsStore.contacts.length === 0"
-        class="bg-white rounded-lg shadow-sm p-8 text-center"
-      >
-        <div class="text-gray-500 mb-4">No contacts found.</div>
-        <q-btn color="primary" label="Create Your First Contact" @click="navigateToCreate" />
-      </div>
-
-      <!-- Table -->
-      <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <q-table
-          :rows="contactsStore.contacts"
-          :columns="columns"
-          row-key="id"
-          :pagination="pagination"
-          @request="onRequest"
-          :rows-per-page-options="[10, 20, 50]"
-          flat
-          bordered
-        >
-          <!-- Name column with organization -->
-          <template v-slot:body-cell-name="props">
-            <q-td :props="props">
-              <div>
-                <div class="font-medium">{{ props.row.name }}</div>
-                <div v-if="props.row.organization" class="text-gray-500 text-sm">
-                  {{ props.row.organization.name }}
-                </div>
-              </div>
-            </q-td>
-          </template>
-
-          <!-- Status column for deleted status -->
-          <template v-slot:body-cell-status="props">
-            <q-td :props="props">
-              <q-badge v-if="props.row.deleted_at" color="red" label="Deleted" />
-            </q-td>
-          </template>
-
-          <!-- Actions column -->
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props" class="q-gutter-x-sm">
-              <q-btn
-                flat
-                round
-                dense
-                color="primary"
-                icon="edit"
-                @click="navigateToEdit(props.row.id)"
-              />
-
-              <q-btn
-                v-if="!props.row.deleted_at"
-                flat
-                round
-                dense
-                color="negative"
-                icon="delete"
-                @click="confirmDelete(props.row)"
-              />
-
-              <q-btn
-                v-else
-                flat
-                round
-                dense
-                color="positive"
-                icon="restore"
-                @click="confirmRestore(props.row)"
-              />
-            </q-td>
-          </template>
-        </q-table>
+        </template>
       </div>
     </div>
+
+    <!-- Filter Menu -->
+    <q-dialog v-model="filterDialog">
+      <q-card style="min-width: 300px">
+        <q-card-section>
+          <div class="text-h6">Filter Contacts</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-radio v-model="trashedFilter" val="null" label="Active contacts only" />
+          <q-radio v-model="trashedFilter" val="with" label="Include deleted contacts" />
+          <q-radio v-model="trashedFilter" val="only" label="Only deleted contacts" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="primary" v-close-popup />
+          <q-btn flat label="Reset Filters" color="primary" @click="resetFilters" v-close-popup />
+          <q-btn flat label="Apply" color="primary" @click="applyFilter" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <!-- Delete Confirmation Dialog -->
     <q-dialog v-model="deleteDialog" persistent>
       <q-card>
         <q-card-section class="row items-center">
           <q-avatar icon="delete" color="negative" text-color="white" />
-          <span class="q-ml-sm">Are you sure you want to delete this contact?</span>
+          <span class="q-ml-sm">Delete {{ selectedContact?.name || 'this contact' }}?</span>
         </q-card-section>
 
         <q-card-actions align="right">
@@ -158,7 +198,7 @@
       <q-card>
         <q-card-section class="row items-center">
           <q-avatar icon="restore" color="positive" text-color="white" />
-          <span class="q-ml-sm">Restore this contact?</span>
+          <span class="q-ml-sm">Restore {{ selectedContact?.name || 'this contact' }}?</span>
         </q-card-section>
 
         <q-card-actions align="right">
@@ -171,10 +211,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useContactsStore } from 'src/stores/contacts.store'
+import { format, isToday, isYesterday, isThisYear } from 'date-fns'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -185,59 +226,104 @@ const search = ref('')
 const trashedFilter = ref(null)
 const deleteDialog = ref(false)
 const restoreDialog = ref(false)
+const filterDialog = ref(false)
 const selectedContact = ref(null)
-
-// Table configuration
-const columns = [
-  {
-    name: 'name',
-    required: true,
-    label: 'Name',
-    align: 'left',
-    field: 'name',
-  },
-  { name: 'email', label: 'Email', field: 'email', align: 'left' },
-  { name: 'phone', label: 'Phone', field: 'phone', align: 'left' },
-  { name: 'city', label: 'City', field: 'city', align: 'left' },
-  { name: 'status', label: 'Status', field: 'deleted_at', align: 'left' },
-  { name: 'actions', label: 'Actions', align: 'center' },
-]
-
-// Pagination
-const pagination = computed(() => ({
-  rowsPerPage: contactsStore.pagination.perPage,
-  page: contactsStore.pagination.currentPage,
-  rowsNumber: contactsStore.pagination.total,
-}))
+const searchLoading = ref(false)
+const tableLoading = ref(false)
+const hasLoadedInitially = ref(false)
+const currentPage = ref(1)
 
 // Load data on mount
 onMounted(async () => {
   await fetchContacts()
+  hasLoadedInitially.value = true
 })
 
 // Methods
 const fetchContacts = async () => {
+  tableLoading.value = true
   await contactsStore.fetchContacts()
+  currentPage.value = contactsStore.pagination.currentPage
+  tableLoading.value = false
 }
 
-const onRequest = async (props) => {
-  const { page } = props.pagination
+// Page navigation
+const onPageChange = async (page) => {
+  tableLoading.value = true
   await contactsStore.fetchContacts(page)
+  tableLoading.value = false
 }
 
-const onSearchDebounced = async (value) => {
-  await contactsStore.fetchContacts(1, value)
+// Create a debounced search function
+let searchTimeout = null
+const debouncedSearch = (value) => {
+  searchLoading.value = true
+
+  // Clear any existing timeout
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  // Set a new timeout
+  searchTimeout = setTimeout(async () => {
+    await contactsStore.fetchContacts(1, value)
+    currentPage.value = 1
+    searchLoading.value = false
+  }, 500) // 500ms debounce time
 }
 
-const onFilterChange = async (value) => {
-  await contactsStore.fetchContacts(1, null, value)
+// Format date function (WhatsApp style)
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+
+  const date = new Date(dateString)
+
+  if (isToday(date)) {
+    return format(date, 'h:mm a') // Today: 3:45 PM
+  } else if (isYesterday(date)) {
+    return 'Yesterday' // Yesterday
+  } else if (isThisYear(date)) {
+    return format(date, 'MMM d') // This year: Mar 15
+  } else {
+    return format(date, 'MM/dd/yyyy') // Different year: 03/15/2022
+  }
+}
+
+// Get initials from name
+const getInitials = (name) => {
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2)
+}
+
+// Filter menu
+const openFilterMenu = () => {
+  filterDialog.value = true
+}
+
+const applyFilter = async () => {
+  tableLoading.value = true
+  await contactsStore.fetchContacts(
+    1,
+    null,
+    trashedFilter.value === 'null' ? null : trashedFilter.value,
+  )
+  currentPage.value = 1
+  tableLoading.value = false
 }
 
 const resetFilters = async () => {
   search.value = ''
   trashedFilter.value = null
+  tableLoading.value = true
   contactsStore.resetFilters()
   await contactsStore.fetchContacts(1)
+  currentPage.value = 1
+  tableLoading.value = false
 }
 
 const navigateToCreate = () => {
@@ -261,6 +347,7 @@ const confirmRestore = (contact) => {
 const deleteContact = async () => {
   if (!selectedContact.value) return
 
+  tableLoading.value = true
   try {
     await contactsStore.deleteContact(selectedContact.value.id)
     $q.notify({
@@ -275,12 +362,15 @@ const deleteContact = async () => {
       message: 'Failed to delete contact',
       icon: 'error',
     })
+  } finally {
+    tableLoading.value = false
   }
 }
 
 const restoreContact = async () => {
   if (!selectedContact.value) return
 
+  tableLoading.value = true
   try {
     await contactsStore.restoreContact(selectedContact.value.id)
     $q.notify({
@@ -295,6 +385,27 @@ const restoreContact = async () => {
       message: 'Failed to restore contact',
       icon: 'error',
     })
+  } finally {
+    tableLoading.value = false
   }
 }
 </script>
+
+<style scoped>
+.contact-list .q-item {
+  padding: 10px 16px;
+  transition: background-color 0.2s;
+}
+
+.contact-list .q-item:hover {
+  background-color: #f7f7f7;
+}
+
+.deleted-contact {
+  opacity: 0.7;
+}
+
+.q-avatar {
+  font-size: 14px;
+}
+</style>
