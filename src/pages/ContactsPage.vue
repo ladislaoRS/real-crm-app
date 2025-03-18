@@ -104,7 +104,7 @@
                   >
                 </q-item-label>
                 <q-item-label caption>
-                  {{ contact.organization ? contact.organization.name : 'No organization' }}
+                  {{ contact.phone ? contact.phone : 'Missing phone...' }}
                 </q-item-label>
               </q-item-section>
 
@@ -152,6 +152,10 @@
               boundary-links
               @update:model-value="onPageChange"
             />
+            <div class="text-caption text-grey q-ml-md self-center">
+              {{ contactsStore.pagination.perPage }} per page / Total:
+              {{ contactsStore.pagination.total }}
+            </div>
           </div>
         </template>
       </div>
@@ -235,7 +239,9 @@ const currentPage = ref(1)
 
 // Load data on mount
 onMounted(async () => {
+  console.log('Loading contacts...')
   await fetchContacts()
+  console.log('Contacts loaded, per page:', contactsStore.pagination.perPage)
   hasLoadedInitially.value = true
 })
 

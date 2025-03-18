@@ -10,7 +10,7 @@ export const useContactsStore = defineStore('contacts', {
     pagination: {
       currentPage: 1,
       total: 0,
-      perPage: 10,
+      perPage: 5,
       lastPage: 1,
     },
     filters: {
@@ -42,16 +42,18 @@ export const useContactsStore = defineStore('contacts', {
       try {
         const response = await api.getContacts(page, this.filters.search, this.filters.trashed)
 
-        // Extract data and pagination info
+        // Extract data and pagination info directly from the response
         const { data, meta } = response.data
 
         this.contacts = data
         this.pagination = {
           currentPage: meta.current_page,
           total: meta.total,
-          perPage: meta.per_page,
+          perPage: meta.per_page, // Use the per_page value from the backend
           lastPage: meta.last_page,
         }
+
+        console.log('Pagination from backend:', this.pagination)
 
         return data
       } catch (error) {

@@ -9,16 +9,21 @@
 
       <!-- Form -->
       <div class="bg-white rounded-lg shadow-sm p-6">
-        <form @submit.prevent="createContact" class="space-y-6">
+        <q-form @submit="createContact" class="space-y-6" ref="contactForm">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- First name -->
             <div>
               <q-input
                 v-model="form.first_name"
-                label="First name"
+                label="First name *"
                 class="w-full"
-                :rules="[(val) => !!val || 'First name is required']"
+                :rules="[
+                  (val) => !!val || 'First name is required',
+                  (val) => val.length <= 50 || 'First name must be 50 characters or less',
+                ]"
                 outlined
+                lazy-rules
+                bottom-slots
               />
             </div>
 
@@ -26,59 +31,126 @@
             <div>
               <q-input
                 v-model="form.last_name"
-                label="Last name"
+                label="Last name *"
                 class="w-full"
-                :rules="[(val) => !!val || 'Last name is required']"
+                :rules="[
+                  (val) => !!val || 'Last name is required',
+                  (val) => val.length <= 50 || 'Last name must be 50 characters or less',
+                ]"
                 outlined
-              />
-            </div>
-
-            <!-- Organization (would need to be a dynamic select in a real app) -->
-            <div>
-              <q-select
-                v-model="form.organization_id"
-                :options="organizationOptions"
-                label="Organization"
-                class="w-full"
-                outlined
-                emit-value
-                map-options
+                lazy-rules
+                bottom-slots
               />
             </div>
 
             <!-- Email -->
             <div>
-              <q-input v-model="form.email" label="Email" type="email" class="w-full" outlined />
+              <q-input
+                v-model="form.email"
+                label="Email"
+                type="email"
+                class="w-full"
+                :rules="[
+                  (val) => !val || emailPattern.test(val) || 'Please enter a valid email address',
+                ]"
+                outlined
+                lazy-rules
+                bottom-slots
+              />
             </div>
 
             <!-- Phone -->
             <div>
-              <q-input v-model="form.phone" label="Phone" class="w-full" outlined />
+              <q-input
+                v-model="form.phone"
+                label="Phone"
+                class="w-full"
+                :rules="[
+                  (val) => !val || phonePattern.test(val) || 'Please enter a valid US phone number',
+                ]"
+                outlined
+                mask="(###) ###-####"
+                hint="Format: (555) 123-4567"
+                lazy-rules
+                bottom-slots
+              />
             </div>
 
             <!-- Address -->
             <div class="md:col-span-2">
-              <q-input v-model="form.address" label="Address" class="w-full" outlined />
+              <q-input
+                v-model="form.address"
+                label="Address"
+                class="w-full"
+                :rules="[
+                  (val) => !val || val.length <= 150 || 'Address must be 150 characters or less',
+                ]"
+                outlined
+                lazy-rules
+                bottom-slots
+              />
             </div>
 
             <!-- City -->
             <div>
-              <q-input v-model="form.city" label="City" class="w-full" outlined />
+              <q-input
+                v-model="form.city"
+                label="City"
+                class="w-full"
+                :rules="[(val) => !val || val.length <= 50 || 'City must be 50 characters or less']"
+                outlined
+                lazy-rules
+                bottom-slots
+              />
             </div>
 
-            <!-- Region -->
+            <!-- State/Region (Dropdown) -->
             <div>
-              <q-input v-model="form.region" label="State/Province" class="w-full" outlined />
+              <q-select
+                v-model="form.region"
+                :options="stateOptions"
+                label="State"
+                class="w-full"
+                outlined
+                map-options
+                emit-value
+                lazy-rules
+                bottom-slots
+                :rules="[
+                  (val) =>
+                    !val ||
+                    stateOptions.some((state) => state.value === val) ||
+                    'Please select a valid state',
+                ]"
+              />
             </div>
 
-            <!-- Country -->
+            <!-- Country (Fixed to US) -->
             <div>
-              <q-input v-model="form.country" label="Country" class="w-full" outlined />
+              <q-input
+                v-model="form.country"
+                label="Country"
+                class="w-full"
+                outlined
+                readonly
+                disable
+              />
             </div>
 
             <!-- Postal code -->
             <div>
-              <q-input v-model="form.postal_code" label="Postal code" class="w-full" outlined />
+              <q-input
+                v-model="form.postal_code"
+                label="Postal code"
+                class="w-full"
+                :rules="[
+                  (val) => !val || zipCodePattern.test(val) || 'Please enter a valid US ZIP code',
+                ]"
+                outlined
+                hint="Format: 12345 or 12345-6789"
+                lazy-rules
+                bottom-slots
+              />
             </div>
           </div>
 
@@ -87,7 +159,7 @@
             <q-btn flat label="Cancel" @click="$router.back()" :disable="isSubmitting" />
             <q-btn type="submit" color="primary" label="Create Contact" :loading="isSubmitting" />
           </div>
-        </form>
+        </q-form>
       </div>
     </div>
   </q-page>
@@ -103,35 +175,94 @@ const router = useRouter()
 const $q = useQuasar()
 const contactsStore = useContactsStore()
 
+// Form reference
+const contactForm = ref(null)
+
 // State
 const isSubmitting = ref(false)
 const form = ref({
   first_name: '',
   last_name: '',
-  organization_id: null,
   email: '',
   phone: '',
   address: '',
   city: '',
   region: '',
-  country: '',
+  country: 'US', // Default to US
   postal_code: '',
+  // Include a default organization_id that's needed by the API
+  organization_id: 1,
 })
 
-// Sample organization options (in a real app, these would be fetched from the API)
-const organizationOptions = [
-  { label: 'Acme Inc.', value: 1 },
-  { label: 'Widget Co.', value: 2 },
-  { label: 'Example Corp.', value: 3 },
+// Validation patterns
+const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const phonePattern = /^\(\d{3}\) \d{3}-\d{4}$/
+const zipCodePattern = /^\d{5}(-\d{4})?$/
+
+// US States options
+const stateOptions = [
+  { label: 'Alabama', value: 'AL' },
+  { label: 'Alaska', value: 'AK' },
+  { label: 'Arizona', value: 'AZ' },
+  { label: 'Arkansas', value: 'AR' },
+  { label: 'California', value: 'CA' },
+  { label: 'Colorado', value: 'CO' },
+  { label: 'Connecticut', value: 'CT' },
+  { label: 'Delaware', value: 'DE' },
+  { label: 'Florida', value: 'FL' },
+  { label: 'Georgia', value: 'GA' },
+  { label: 'Hawaii', value: 'HI' },
+  { label: 'Idaho', value: 'ID' },
+  { label: 'Illinois', value: 'IL' },
+  { label: 'Indiana', value: 'IN' },
+  { label: 'Iowa', value: 'IA' },
+  { label: 'Kansas', value: 'KS' },
+  { label: 'Kentucky', value: 'KY' },
+  { label: 'Louisiana', value: 'LA' },
+  { label: 'Maine', value: 'ME' },
+  { label: 'Maryland', value: 'MD' },
+  { label: 'Massachusetts', value: 'MA' },
+  { label: 'Michigan', value: 'MI' },
+  { label: 'Minnesota', value: 'MN' },
+  { label: 'Mississippi', value: 'MS' },
+  { label: 'Missouri', value: 'MO' },
+  { label: 'Montana', value: 'MT' },
+  { label: 'Nebraska', value: 'NE' },
+  { label: 'Nevada', value: 'NV' },
+  { label: 'New Hampshire', value: 'NH' },
+  { label: 'New Jersey', value: 'NJ' },
+  { label: 'New Mexico', value: 'NM' },
+  { label: 'New York', value: 'NY' },
+  { label: 'North Carolina', value: 'NC' },
+  { label: 'North Dakota', value: 'ND' },
+  { label: 'Ohio', value: 'OH' },
+  { label: 'Oklahoma', value: 'OK' },
+  { label: 'Oregon', value: 'OR' },
+  { label: 'Pennsylvania', value: 'PA' },
+  { label: 'Rhode Island', value: 'RI' },
+  { label: 'South Carolina', value: 'SC' },
+  { label: 'South Dakota', value: 'SD' },
+  { label: 'Tennessee', value: 'TN' },
+  { label: 'Texas', value: 'TX' },
+  { label: 'Utah', value: 'UT' },
+  { label: 'Vermont', value: 'VT' },
+  { label: 'Virginia', value: 'VA' },
+  { label: 'Washington', value: 'WA' },
+  { label: 'West Virginia', value: 'WV' },
+  { label: 'Wisconsin', value: 'WI' },
+  { label: 'Wyoming', value: 'WY' },
 ]
 
 // Create contact handler
 const createContact = async () => {
-  // Simple validation
-  if (!form.value.first_name || !form.value.last_name) {
+  // Use Quasar's built-in form validation
+  const isValid = await contactForm.value.validate()
+
+  if (!isValid) {
+    // Form has validation errors
     $q.notify({
       color: 'negative',
-      message: 'Please fill in all required fields',
+      message: 'Please correct the errors in the form',
       icon: 'error',
     })
     return
@@ -144,6 +275,16 @@ const createContact = async () => {
     const userData = JSON.parse(localStorage.getItem('user') || '{}')
     if (userData.account_id) {
       form.value.account_id = userData.account_id
+    }
+
+    // Ensure country is set to US
+    form.value.country = 'US'
+
+    // Format phone for API if it's in our masked format
+    if (form.value.phone && phonePattern.test(form.value.phone)) {
+      // Extract just the digits for the API
+      const digits = form.value.phone.replace(/\D/g, '')
+      form.value.phone = digits
     }
 
     await contactsStore.createContact(form.value)
