@@ -91,7 +91,13 @@
               :class="{ 'deleted-contact': contact.deleted_at }"
             >
               <q-item-section avatar>
-                <q-avatar color="primary" text-color="white">
+                <q-avatar
+                  color="primary"
+                  text-color="white"
+                  size="48px"
+                  font-size="16px"
+                  class="shadow-sm"
+                >
                   {{ getInitials(contact.name) }}
                 </q-avatar>
               </q-item-section>
