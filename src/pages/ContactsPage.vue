@@ -110,7 +110,7 @@
 
               <q-item-section side>
                 <q-item-label caption>
-                  {{ formatDate(contact.updated_at) }}
+                  {{ formatDate(contact.created_at) }}
                 </q-item-label>
                 <div class="row items-center no-wrap q-mt-xs">
                   <q-btn
