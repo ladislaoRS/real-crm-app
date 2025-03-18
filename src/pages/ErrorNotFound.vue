@@ -1,27 +1,21 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
-    <div>
-      <div style="font-size: 30vh">
-        404
+  <div class="fullscreen bg-blue-1 text-blue-10 flex flex-center">
+    <div class="text-center">
+      <div style="font-size: 8rem">404</div>
+      <div class="text-h2 mb-4">Oops! Nothing here...</div>
+      <div class="text-h5 text-grey-8 mb-6">
+        The page you're looking for doesn't exist or has been moved.
       </div>
-
-      <div class="text-h2" style="opacity:.4">
-        Oops. Nothing here...
-      </div>
-
       <q-btn
-        class="q-mt-xl"
-        color="white"
-        text-color="blue"
-        unelevated
-        to="/"
-        label="Go Home"
-        no-caps
+        color="primary"
+        size="lg"
+        label="Go Back"
+        @click="$router.push({ name: 'dashboard' })"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-//
+// Nothing to set up here
 </script>

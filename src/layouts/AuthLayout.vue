@@ -14,6 +14,10 @@
 
           <q-menu>
             <q-list style="min-width: 150px">
+              <q-item>
+                <q-item-section>{{ authStore.username || 'User' }}</q-item-section>
+              </q-item>
+              <q-separator />
               <q-item clickable v-close-popup @click="onLogout">
                 <q-item-section>Logout</q-item-section>
               </q-item>
@@ -50,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth.store'
@@ -60,6 +64,11 @@ const $q = useQuasar()
 const authStore = useAuthStore()
 
 const leftDrawerOpen = ref(false)
+
+// Check authentication on mount
+onMounted(async () => {
+  await authStore.checkAuth()
+})
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
