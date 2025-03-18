@@ -22,17 +22,102 @@
           <template v-slot:prepend>
             <q-icon name="search" />
           </template>
-          <template v-slot:append>
-            <q-icon
-              v-if="contactsStore.filters.trashed || contactsStore.filters.status"
-              name="filter_alt"
-              class="cursor-pointer"
-              color="primary"
-              @click="openFilterMenu"
-            />
-            <q-icon v-else name="filter_alt" class="cursor-pointer" @click="openFilterMenu" />
-          </template>
         </q-input>
+      </div>
+
+      <!-- Filter Tabs (WhatsApp style) -->
+      <div class="bg-white rounded-lg shadow-sm mb-4 overflow-x-auto">
+        <div class="filter-tabs flex p-2">
+          <!-- Status Filters -->
+          <q-btn
+            flat
+            no-caps
+            :color="activeStatusFilter === null ? 'primary' : 'grey-7'"
+            label="All"
+            class="q-px-md filter-tab"
+            @click="setStatusFilter(null)"
+          />
+          <q-btn
+            v-for="status in statusList"
+            :key="status.value"
+            flat
+            no-caps
+            :color="activeStatusFilter === status.value ? 'primary' : 'grey-7'"
+            :label="status.label"
+            class="q-px-md filter-tab"
+            @click="setStatusFilter(status.value)"
+          />
+        </div>
+      </div>
+
+      <!-- Trashed Filter Pills (right-aligned) -->
+      <div class="flex justify-end mb-4">
+        <div class="bg-white rounded-lg shadow-sm inline-flex">
+          <q-btn
+            flat
+            no-caps
+            size="sm"
+            :color="activeTrashedFilter === null ? 'primary' : 'grey-7'"
+            label="Active"
+            class="q-px-sm"
+            @click="setTrashedFilter(null)"
+          />
+          <q-btn
+            flat
+            no-caps
+            size="sm"
+            :color="activeTrashedFilter === 'with' ? 'primary' : 'grey-7'"
+            label="All"
+            class="q-px-sm"
+            @click="setTrashedFilter('with')"
+          />
+          <q-btn
+            flat
+            no-caps
+            size="sm"
+            :color="activeTrashedFilter === 'only' ? 'primary' : 'grey-7'"
+            label="Deleted"
+            class="q-px-sm"
+            @click="setTrashedFilter('only')"
+          />
+        </div>
+      </div>
+
+      <!-- Active Filters Display -->
+      <div v-if="hasActiveFilters" class="flex justify-end mb-4">
+        <div class="flex items-center">
+          <span class="text-sm text-gray-600 mr-2">Filters:</span>
+          <q-chip
+            v-if="activeStatusFilter"
+            dense
+            removable
+            :color="getStatusColor(activeStatusFilter)"
+            text-color="white"
+            @remove="setStatusFilter(null)"
+          >
+            {{ activeStatusFilter }}
+          </q-chip>
+          <q-chip
+            v-if="activeTrashedFilter"
+            dense
+            removable
+            color="grey"
+            text-color="white"
+            @remove="setTrashedFilter(null)"
+          >
+            {{ activeTrashedFilter === 'only' ? 'Deleted' : 'All' }}
+          </q-chip>
+          <q-btn
+            v-if="hasActiveFilters"
+            flat
+            dense
+            color="primary"
+            label="Clear All"
+            @click="resetFilters"
+            class="q-ml-sm"
+            size="sm"
+          />
+        </div>
       </div>
 
       <!-- Main Content -->
@@ -175,38 +260,6 @@
       </div>
     </div>
 
-    <!-- Filter Menu -->
-    <q-dialog v-model="filterDialog">
-      <q-card style="min-width: 300px">
-        <q-card-section>
-          <div class="text-h6">Filter Contacts</div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="text-subtitle2 q-pb-sm">Deletion Status</div>
-          <q-radio v-model="trashedFilter" val="null" label="Active" />
-          <q-radio v-model="trashedFilter" val="with" label="All" />
-          <q-radio v-model="trashedFilter" val="only" label="Deleted" />
-        </q-card-section>
-
-        <q-card-section>
-          <div class="text-subtitle2 q-pb-sm">Application Status</div>
-          <q-option-group
-            v-model="statusFilter"
-            :options="statusOptions"
-            type="radio"
-            color="primary"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" v-close-popup />
-          <q-btn flat label="Reset Filters" color="primary" @click="resetFilters" v-close-popup />
-          <q-btn flat label="Apply" color="primary" @click="applyFilter" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <!-- Delete Confirmation Dialog -->
     <q-dialog v-model="deleteDialog" persistent>
       <q-card>
@@ -236,13 +289,11 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <!-- No Status Update Dialog needed as it's handled from backend -->
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useContactsStore } from 'src/stores/contacts.store'
@@ -252,9 +303,8 @@ const router = useRouter()
 const $q = useQuasar()
 const contactsStore = useContactsStore()
 
-// Status options based on your workflow
-const statusOptions = [
-  { label: 'All Statuses', value: null },
+// Status options - without the "All Statuses" option (handled separately)
+const statusList = [
   { label: 'New', value: 'New' },
   { label: 'Initiated', value: 'Initiated' },
   { label: 'Submitted', value: 'Submitted' },
@@ -282,22 +332,20 @@ const getStatusColor = (status) => {
 
 // State
 const search = ref('')
-const trashedFilter = ref(null)
-const statusFilter = ref(null)
+const activeStatusFilter = ref(null)
+const activeTrashedFilter = ref(null)
 const deleteDialog = ref(false)
 const restoreDialog = ref(false)
-const filterDialog = ref(false)
 const selectedContact = ref(null)
 const searchLoading = ref(false)
 const tableLoading = ref(false)
 const hasLoadedInitially = ref(false)
 const currentPage = ref(1)
 
-// Status filter options for dropdown
-// const statusFilterOptions = computed(() => [
-//   { label: 'All Statuses', value: null },
-//   ...statusOptions.slice(1),
-// ])
+// Computed properties
+const hasActiveFilters = computed(() => {
+  return activeStatusFilter.value !== null || activeTrashedFilter.value !== null
+})
 
 // Load data on mount
 onMounted(async () => {
@@ -368,27 +416,31 @@ const getInitials = (name) => {
     .substring(0, 2)
 }
 
-// Filter menu
-const openFilterMenu = () => {
-  filterDialog.value = true
+// Filter functions
+const setStatusFilter = async (status) => {
+  if (activeStatusFilter.value === status) return
+
+  tableLoading.value = true
+  activeStatusFilter.value = status
+  await contactsStore.fetchContacts(1, null, activeTrashedFilter.value, status)
+  currentPage.value = 1
+  tableLoading.value = false
 }
 
-const applyFilter = async () => {
+const setTrashedFilter = async (trashed) => {
+  if (activeTrashedFilter.value === trashed) return
+
   tableLoading.value = true
-  await contactsStore.fetchContacts(
-    1,
-    null,
-    trashedFilter.value === 'null' ? null : trashedFilter.value,
-    statusFilter.value,
-  )
+  activeTrashedFilter.value = trashed
+  await contactsStore.fetchContacts(1, null, trashed, activeStatusFilter.value)
   currentPage.value = 1
   tableLoading.value = false
 }
 
 const resetFilters = async () => {
   search.value = ''
-  trashedFilter.value = null
-  statusFilter.value = null
+  activeStatusFilter.value = null
+  activeTrashedFilter.value = null
   tableLoading.value = true
   contactsStore.resetFilters()
   await contactsStore.fetchContacts(1)
@@ -459,8 +511,6 @@ const restoreContact = async () => {
     tableLoading.value = false
   }
 }
-
-// No status management functions needed as this is handled from backend
 </script>
 
 <style scoped>
@@ -479,5 +529,39 @@ const restoreContact = async () => {
 
 .q-avatar {
   font-size: 14px;
+}
+
+.filter-tabs {
+  padding-bottom: 2px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.filter-tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.filter-tab {
+  position: relative;
+  margin-right: 4px;
+}
+
+.filter-tab:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 3px;
+  background-color: var(--q-primary);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.filter-tab.q-btn--active:after {
+  opacity: 1;
 }
 </style>
