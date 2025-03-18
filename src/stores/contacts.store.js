@@ -16,6 +16,7 @@ export const useContactsStore = defineStore('contacts', {
     filters: {
       search: '',
       trashed: null,
+      status: null,
     },
   }),
 
@@ -31,16 +32,30 @@ export const useContactsStore = defineStore('contacts', {
   },
 
   actions: {
-    async fetchContacts(page = 1, search = null, trashed = null) {
+    async fetchContacts(page = 1, search = null, trashed = null, status = null) {
       this.loading = true
       this.error = null
 
       // Update filters if provided
       if (search !== null) this.filters.search = search
       if (trashed !== null) this.filters.trashed = trashed
+      if (status !== undefined) this.filters.status = status // FIX: Was setting this.status instead of this.filters.status
+
+      console.log('Fetching contacts with filters:', {
+        page,
+        search: this.filters.search,
+        trashed: this.filters.trashed,
+        status: this.filters.status, // Log the status filter to verify it's correct
+      })
 
       try {
-        const response = await api.getContacts(page, this.filters.search, this.filters.trashed)
+        // FIX: Pass all filters including status to the API service
+        const response = await api.getContacts(
+          page,
+          this.filters.search,
+          this.filters.trashed,
+          this.filters.status, // Pass status filter to API
+        )
 
         // Extract data and pagination info directly from the response
         const { data, meta } = response.data
@@ -169,6 +184,7 @@ export const useContactsStore = defineStore('contacts', {
       this.filters = {
         search: '',
         trashed: null,
+        status: null,
       }
     },
   },

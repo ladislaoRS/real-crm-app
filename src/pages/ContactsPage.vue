@@ -24,7 +24,7 @@
           </template>
           <template v-slot:append>
             <q-icon
-              v-if="contactsStore.filters.trashed"
+              v-if="contactsStore.filters.trashed || contactsStore.filters.status"
               name="filter_alt"
               class="cursor-pointer"
               color="primary"
@@ -108,6 +108,14 @@
                   <q-badge v-if="contact.deleted_at" color="red" text-color="white" class="q-ml-sm"
                     >Deleted</q-badge
                   >
+                  <q-badge
+                    v-if="contact.status"
+                    :color="getStatusColor(contact.status)"
+                    text-color="white"
+                    class="q-ml-sm"
+                  >
+                    {{ contact.status }}
+                  </q-badge>
                 </q-item-label>
                 <q-item-label caption>
                   {{ contact.phone ? contact.phone : 'Missing phone...' }}
@@ -175,9 +183,20 @@
         </q-card-section>
 
         <q-card-section>
-          <q-radio v-model="trashedFilter" val="null" label="Active contacts only" />
-          <q-radio v-model="trashedFilter" val="with" label="Include deleted contacts" />
-          <q-radio v-model="trashedFilter" val="only" label="Only deleted contacts" />
+          <div class="text-subtitle2 q-pb-sm">Deletion Status</div>
+          <q-radio v-model="trashedFilter" val="null" label="Active" />
+          <q-radio v-model="trashedFilter" val="with" label="All" />
+          <q-radio v-model="trashedFilter" val="only" label="Deleted" />
+        </q-card-section>
+
+        <q-card-section>
+          <div class="text-subtitle2 q-pb-sm">Application Status</div>
+          <q-option-group
+            v-model="statusFilter"
+            :options="statusOptions"
+            type="radio"
+            color="primary"
+          />
         </q-card-section>
 
         <q-card-actions align="right">
@@ -217,6 +236,8 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- No Status Update Dialog needed as it's handled from backend -->
   </q-page>
 </template>
 
@@ -231,9 +252,38 @@ const router = useRouter()
 const $q = useQuasar()
 const contactsStore = useContactsStore()
 
+// Status options based on your workflow
+const statusOptions = [
+  { label: 'All Statuses', value: null },
+  { label: 'New', value: 'New' },
+  { label: 'Initiated', value: 'Initiated' },
+  { label: 'Submitted', value: 'Submitted' },
+  { label: 'In Review', value: 'In Review' },
+  { label: 'Approved', value: 'Approved' },
+  { label: 'Rejected', value: 'Rejected' },
+  { label: 'Assigned', value: 'Assigned' },
+  { label: 'Finalized', value: 'Finalized' },
+]
+
+// Status colors
+const getStatusColor = (status) => {
+  const colors = {
+    New: 'blue',
+    Initiated: 'purple',
+    Submitted: 'teal',
+    'In Review': 'orange',
+    Approved: 'green',
+    Rejected: 'red-6',
+    Assigned: 'deep-purple',
+    Finalized: 'green-10',
+  }
+  return colors[status] || 'grey'
+}
+
 // State
 const search = ref('')
 const trashedFilter = ref(null)
+const statusFilter = ref(null)
 const deleteDialog = ref(false)
 const restoreDialog = ref(false)
 const filterDialog = ref(false)
@@ -242,6 +292,12 @@ const searchLoading = ref(false)
 const tableLoading = ref(false)
 const hasLoadedInitially = ref(false)
 const currentPage = ref(1)
+
+// Status filter options for dropdown
+// const statusFilterOptions = computed(() => [
+//   { label: 'All Statuses', value: null },
+//   ...statusOptions.slice(1),
+// ])
 
 // Load data on mount
 onMounted(async () => {
@@ -323,6 +379,7 @@ const applyFilter = async () => {
     1,
     null,
     trashedFilter.value === 'null' ? null : trashedFilter.value,
+    statusFilter.value,
   )
   currentPage.value = 1
   tableLoading.value = false
@@ -331,6 +388,7 @@ const applyFilter = async () => {
 const resetFilters = async () => {
   search.value = ''
   trashedFilter.value = null
+  statusFilter.value = null
   tableLoading.value = true
   contactsStore.resetFilters()
   await contactsStore.fetchContacts(1)
@@ -401,6 +459,8 @@ const restoreContact = async () => {
     tableLoading.value = false
   }
 }
+
+// No status management functions needed as this is handled from backend
 </script>
 
 <style scoped>

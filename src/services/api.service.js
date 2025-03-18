@@ -58,10 +58,11 @@ export default {
   },
 
   // Contacts methods
-  getContacts(page = 1, search = '', trashed = null) {
+  getContacts(page = 1, search = '', trashed = null, status = null) {
     let params = { page }
     if (search) params.search = search
     if (trashed) params.trashed = trashed
+    if (status) params.status = status
 
     return apiClient.get('/contacts', { params })
   },
