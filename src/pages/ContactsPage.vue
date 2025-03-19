@@ -190,17 +190,6 @@
               <q-item-section>
                 <q-item-label class="text-weight-medium">
                   {{ contact.name }}
-                  <q-badge v-if="contact.deleted_at" color="red" text-color="white" class="q-ml-sm"
-                    >Deleted</q-badge
-                  >
-                  <q-badge
-                    v-if="contact.status"
-                    :color="getStatusColor(contact.status)"
-                    text-color="white"
-                    class="q-ml-sm"
-                  >
-                    {{ contact.status }}
-                  </q-badge>
                 </q-item-label>
                 <q-item-label caption>
                   {{ contact.phone ? contact.phone : 'Missing phone...' }}
@@ -208,30 +197,49 @@
               </q-item-section>
 
               <q-item-section side>
-                <q-item-label caption>
-                  {{ formatDate(contact.created_at) }}
-                </q-item-label>
-                <div class="row items-center no-wrap q-mt-xs">
-                  <q-btn
-                    v-if="!contact.deleted_at"
-                    flat
-                    round
-                    dense
-                    size="sm"
-                    color="negative"
-                    icon="delete"
-                    @click.stop="confirmDelete(contact)"
-                  />
-                  <q-btn
-                    v-else
-                    flat
-                    round
-                    dense
-                    size="sm"
-                    color="positive"
-                    icon="restore"
-                    @click.stop="confirmRestore(contact)"
-                  />
+                <div class="flex flex-col items-end">
+                  <q-item-label caption>
+                    {{ formatDate(contact.created_at) }}
+                  </q-item-label>
+
+                  <div class="row items-center q-gutter-x-xs q-mt-xs">
+                    <!-- Status badges moved to the right -->
+                    <q-badge
+                      v-if="contact.status"
+                      :color="getStatusColor(contact.status)"
+                      text-color="white"
+                      class="q-mr-xs"
+                    >
+                      {{ contact.status }}
+                    </q-badge>
+                    <q-badge v-if="contact.deleted_at" color="red" text-color="white">
+                      Deleted
+                    </q-badge>
+                  </div>
+
+                  <!-- Action buttons positioned below -->
+                  <div class="row items-center no-wrap q-mt-xs">
+                    <q-btn
+                      v-if="!contact.deleted_at"
+                      flat
+                      round
+                      dense
+                      size="sm"
+                      color="negative"
+                      icon="delete"
+                      @click.stop="confirmDelete(contact)"
+                    />
+                    <q-btn
+                      v-else
+                      flat
+                      round
+                      dense
+                      size="sm"
+                      color="positive"
+                      icon="restore"
+                      @click.stop="confirmRestore(contact)"
+                    />
+                  </div>
                 </div>
               </q-item-section>
             </q-item>
@@ -318,16 +326,16 @@ const statusList = [
 // Status colors
 const getStatusColor = (status) => {
   const colors = {
-    New: 'blue',
-    Initiated: 'purple',
-    Submitted: 'teal',
-    'In Review': 'orange',
-    Approved: 'green',
-    Rejected: 'red-6',
-    Assigned: 'deep-purple',
-    Finalized: 'green-10',
+    New: 'blue-4',
+    Initiated: 'purple-3',
+    Submitted: 'teal-3',
+    'In Review': 'amber-4',
+    Approved: 'green-3',
+    Rejected: 'pink-3',
+    Assigned: 'indigo-3',
+    Finalized: 'green-6',
   }
-  return colors[status] || 'grey'
+  return colors[status] || 'grey-5'
 }
 
 // State

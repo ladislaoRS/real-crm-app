@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title> PingCRM </q-toolbar-title>
+        <q-toolbar-title> RealCRM </q-toolbar-title>
 
         <!-- User dropdown menu -->
         <q-btn flat round>

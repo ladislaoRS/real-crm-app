@@ -305,7 +305,7 @@ const fetchAllContacts = async () => {
   try {
     // We need to get all contacts, so we set a large page size
     // In a real app with many contacts, you'd want to do this calculation server-side
-    const response = await api.getContacts(1, '', 'with', 1000)
+    const response = await api.getContacts(1, '', 'with')
 
     // Store all contact data and total
     allContacts.value = response.data.data
