@@ -1,6 +1,7 @@
 // https://github.com/michael-ciniawsky/postcss-load-config
 
 import autoprefixer from 'autoprefixer'
+import tailwind from 'tailwindcss'
 // import rtlcss from 'postcss-rtlcss'
 
 export default {
@@ -15,9 +16,11 @@ export default {
         'last 4 Android versions',
         'last 4 ChromeAndroid versions',
         'last 4 FirefoxAndroid versions',
-        'last 4 iOS versions'
-      ]
+        'last 4 iOS versions',
+      ],
     }),
+
+    tailwind(),
 
     // https://github.com/elchininet/postcss-rtlcss
     // If you want to support RTL css, then
@@ -25,5 +28,5 @@ export default {
     // 2. optionally set quasar.config.js > framework > lang to an RTL language
     // 3. uncomment the following line (and its import statement above):
     // rtlcss()
-  ]
+  ],
 }
