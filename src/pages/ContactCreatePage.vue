@@ -10,6 +10,64 @@
       <!-- Form -->
       <div class="bg-white rounded-lg shadow-sm p-6">
         <q-form @submit="createContact" class="space-y-6" ref="contactForm">
+          <!-- Status Section -->
+          <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Status Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Status -->
+              <div>
+                <q-select
+                  v-model="form.status"
+                  :options="statusOptions"
+                  label="Contact Status"
+                  class="w-full"
+                  outlined
+                  map-options
+                  emit-value
+                  lazy-rules
+                  bottom-slots
+                >
+                  <template v-slot:selected-item="scope">
+                    <div class="flex items-center">
+                      <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
+                      <span>{{ scope.opt }}</span>
+                    </div>
+                  </template>
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>
+                          <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
+                          {{ scope.opt }}
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
+              </div>
+
+              <!-- Status Notes -->
+              <div class="md:col-span-2">
+                <q-input
+                  v-model="form.status_notes"
+                  label="Status Notes"
+                  type="textarea"
+                  rows="3"
+                  class="w-full"
+                  outlined
+                  lazy-rules
+                  bottom-slots
+                  :rules="[
+                    (val) => !val || val.length <= 500 || 'Notes must be 500 characters or less',
+                  ]"
+                  hint="Add any relevant notes about this contact's status"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Personal Information -->
+          <h2 class="text-lg font-semibold text-gray-700 mb-4">Personal Information</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- First name -->
             <div>
@@ -75,7 +133,11 @@
                 bottom-slots
               />
             </div>
+          </div>
 
+          <!-- Address Information -->
+          <h2 class="text-lg font-semibold text-gray-700 mb-4 mt-6">Address Information</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Address -->
             <div class="md:col-span-2">
               <q-input
@@ -190,9 +252,39 @@ const form = ref({
   region: '',
   country: 'US', // Default to US
   postal_code: '',
+  status: 'New', // Default status for new contacts
+  status_notes: '',
   // Include a default organization_id that's needed by the API
   organization_id: 1,
 })
+
+// Status options
+const statusOptions = [
+  null, // Allow no status
+  'New',
+  'Initiated',
+  'Submitted',
+  'In Review',
+  'Approved',
+  'Rejected',
+  'Assigned',
+  'Finalized',
+]
+
+// Status colors (matching the ones from the contacts list)
+const getStatusColor = (status) => {
+  const colors = {
+    New: 'blue-4',
+    Initiated: 'purple-3',
+    Submitted: 'teal-3',
+    'In Review': 'amber-4',
+    Approved: 'green-3',
+    Rejected: 'pink-3',
+    Assigned: 'indigo-3',
+    Finalized: 'green-6',
+  }
+  return colors[status] || 'grey-5'
+}
 
 // Validation patterns
 const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -308,3 +400,7 @@ const createContact = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* You can add custom styles here if needed */
+</style>

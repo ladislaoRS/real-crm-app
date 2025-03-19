@@ -3,7 +3,7 @@
   <div class="flex flex-center bg-gray-100 fullscreen">
     <div class="w-full max-w-md px-8 py-6 bg-white rounded-lg shadow-md">
       <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-800">PingCRM</h1>
+        <h1 class="text-2xl font-bold text-gray-800">Real CRM</h1>
         <p class="text-gray-600">Log in to your account</p>
       </div>
 

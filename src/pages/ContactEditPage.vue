@@ -31,6 +31,77 @@
       <template v-else-if="contactsStore.contact">
         <div class="bg-white rounded-lg shadow-sm p-6">
           <q-form @submit="updateContact" class="space-y-6" ref="contactForm">
+            <!-- Status Section -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-6">
+              <h2 class="text-lg font-semibold text-gray-700 mb-4">Status Information</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Status -->
+                <div>
+                  <q-select
+                    v-model="form.status"
+                    :options="statusOptions"
+                    label="Contact Status"
+                    class="w-full"
+                    outlined
+                    map-options
+                    emit-value
+                    lazy-rules
+                    bottom-slots
+                  >
+                    <template v-slot:selected-item="scope">
+                      <div class="flex items-center">
+                        <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
+                        <span>{{ scope.opt }}</span>
+                      </div>
+                    </template>
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps">
+                        <q-item-section>
+                          <q-item-label>
+                            <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
+                            {{ scope.opt }}
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-select>
+                </div>
+
+                <!-- Status Updated Date (read-only) -->
+                <div>
+                  <q-input
+                    v-if="contactsStore.contact.status_updated_at"
+                    v-model="statusUpdatedDate"
+                    label="Status Last Updated"
+                    class="w-full"
+                    outlined
+                    readonly
+                    disable
+                  />
+                </div>
+
+                <!-- Status Notes -->
+                <div class="md:col-span-2">
+                  <q-input
+                    v-model="form.status_notes"
+                    label="Status Notes"
+                    type="textarea"
+                    rows="3"
+                    class="w-full"
+                    outlined
+                    lazy-rules
+                    bottom-slots
+                    :rules="[
+                      (val) => !val || val.length <= 500 || 'Notes must be 500 characters or less',
+                    ]"
+                    hint="Add any relevant notes about this contact's status"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Personal Information -->
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Personal Information</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- First name -->
               <div>
@@ -97,7 +168,11 @@
                   bottom-slots
                 />
               </div>
+            </div>
 
+            <!-- Address Information -->
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 mt-6">Address Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Address -->
               <div class="md:col-span-2">
                 <q-input
@@ -191,10 +266,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useContactsStore } from 'src/stores/contacts.store'
+import { format, parseISO } from 'date-fns'
 
 const route = useRoute()
 const router = useRouter()
@@ -217,6 +293,47 @@ const form = ref({
   region: '',
   country: 'US', // Default to US
   postal_code: '',
+  status: null,
+  status_notes: '',
+})
+
+// Status options
+const statusOptions = [
+  null, // Allow no status
+  'New',
+  'Initiated',
+  'Submitted',
+  'In Review',
+  'Approved',
+  'Rejected',
+  'Assigned',
+  'Finalized',
+]
+
+// Status colors (matching the ones from the contacts list)
+const getStatusColor = (status) => {
+  const colors = {
+    New: 'blue-4',
+    Initiated: 'purple-3',
+    Submitted: 'teal-3',
+    'In Review': 'amber-4',
+    Approved: 'green-3',
+    Rejected: 'pink-3',
+    Assigned: 'indigo-3',
+    Finalized: 'green-6',
+  }
+  return colors[status] || 'grey-5'
+}
+
+// Formatted status updated date
+const statusUpdatedDate = computed(() => {
+  if (!contactsStore.contact?.status_updated_at) return ''
+  try {
+    return format(parseISO(contactsStore.contact.status_updated_at), 'MMM d, yyyy h:mm a')
+    // eslint-disable-next-line no-unused-vars
+  } catch (e) {
+    return contactsStore.contact.status_updated_at
+  }
 })
 
 // Validation patterns
@@ -308,6 +425,8 @@ watch(
         region: newContact.region || '',
         country: 'US', // Always set to US
         postal_code: newContact.postal_code || '',
+        status: newContact.status || null,
+        status_notes: newContact.status_notes || '',
         // Keep organization_id in the form for the API but don't show it
         organization_id: newContact.organization_id,
       }
@@ -388,3 +507,7 @@ const updateContact = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* You can add custom styles here if needed */
+</style>
