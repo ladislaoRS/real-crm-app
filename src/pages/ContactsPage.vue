@@ -215,8 +215,27 @@
               </q-item-section>
 
               <q-item-section>
-                <q-item-label class="text-weight-medium">
+                <!-- Name with inline status badges -->
+                <q-item-label class="text-weight-medium flex items-center">
                   {{ contact.name }}
+                  <q-badge
+                    v-if="contact.status"
+                    :color="getStatusColor(contact.status)"
+                    text-color="white"
+                    class="q-ml-sm"
+                    size="sm"
+                  >
+                    {{ contact.status }}
+                  </q-badge>
+                  <q-badge
+                    v-if="contact.deleted_at"
+                    color="red"
+                    text-color="white"
+                    class="q-ml-sm"
+                    size="sm"
+                  >
+                    Deleted
+                  </q-badge>
                 </q-item-label>
                 <q-item-label caption>
                   {{ contact.phone ? contact.phone : 'Missing phone...' }}
@@ -228,21 +247,6 @@
                   <q-item-label caption>
                     {{ formatDate(contact.created_at) }}
                   </q-item-label>
-
-                  <div class="row items-center q-gutter-x-xs q-mt-xs">
-                    <!-- Status badges moved to the right -->
-                    <q-badge
-                      v-if="contact.status"
-                      :color="getStatusColor(contact.status)"
-                      text-color="white"
-                      class="q-mr-xs"
-                    >
-                      {{ contact.status }}
-                    </q-badge>
-                    <q-badge v-if="contact.deleted_at" color="red" text-color="white">
-                      Deleted
-                    </q-badge>
-                  </div>
 
                   <!-- Action buttons positioned below -->
                   <div class="row items-center no-wrap q-mt-xs">
