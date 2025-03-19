@@ -191,7 +191,7 @@
           </div>
         </template>
 
-        <!-- Contact list -->
+        <!-- Contact list with custom tailwind-style badges -->
         <template v-else>
           <q-list separator class="contact-list" v-if="!tableLoading">
             <q-item
@@ -215,27 +215,24 @@
               </q-item-section>
 
               <q-item-section>
-                <!-- Name with inline status badges -->
+                <!-- Name with inline custom tailwind-style badges -->
                 <q-item-label class="text-weight-medium flex items-center">
                   {{ contact.name }}
-                  <q-badge
+                  <!-- Custom status badge using tailwind classes -->
+                  <span
                     v-if="contact.status"
-                    :color="getStatusColor(contact.status)"
-                    text-color="white"
-                    class="q-ml-sm"
-                    size="sm"
+                    class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ml-2 ring-1 ring-inset"
+                    :class="getStatusTailwindClasses(contact.status)"
                   >
                     {{ contact.status }}
-                  </q-badge>
-                  <q-badge
+                  </span>
+                  <!-- Custom deleted badge -->
+                  <span
                     v-if="contact.deleted_at"
-                    color="red"
-                    text-color="white"
-                    class="q-ml-sm"
-                    size="sm"
+                    class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10 ml-2"
                   >
                     Deleted
-                  </q-badge>
+                  </span>
                 </q-item-label>
                 <q-item-label caption>
                   {{ contact.phone ? contact.phone : 'Missing phone...' }}
@@ -586,6 +583,20 @@ const restoreContact = async () => {
   } finally {
     tableLoading.value = false
   }
+}
+
+const getStatusTailwindClasses = (status) => {
+  const classes = {
+    New: 'bg-blue-50 text-blue-700 ring-blue-600/10',
+    Initiated: 'bg-purple-50 text-purple-700 ring-purple-600/10',
+    Submitted: 'bg-teal-50 text-teal-700 ring-teal-600/10',
+    'In Review': 'bg-amber-50 text-amber-700 ring-amber-600/10',
+    Approved: 'bg-green-50 text-green-700 ring-green-600/10',
+    Rejected: 'bg-pink-50 text-pink-700 ring-pink-600/10',
+    Assigned: 'bg-indigo-50 text-indigo-700 ring-indigo-600/10',
+    Finalized: 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+  }
+  return classes[status] || 'bg-gray-50 text-gray-700 ring-gray-600/10'
 }
 </script>
 
