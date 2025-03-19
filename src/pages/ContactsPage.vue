@@ -216,7 +216,7 @@
 
               <q-item-section>
                 <!-- Name with inline custom tailwind-style badges -->
-                <q-item-label class="text-weight-medium flex items-center">
+                <q-item-label class="text-weight-medium flex items-center text-gray-600">
                   {{ contact.name }}
                   <!-- Custom status badge using tailwind classes -->
                   <span

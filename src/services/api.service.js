@@ -58,11 +58,22 @@ export default {
   },
 
   // Contacts methods
-  getContacts(page = 1, search = '', trashed = null, status = null) {
+  getContacts(
+    page = 1,
+    search = '',
+    trashed = null,
+    status = null,
+    sortBy = '',
+    sortOrder = 'asc',
+  ) {
     let params = { page }
     if (search) params.search = search
     if (trashed) params.trashed = trashed
     if (status) params.status = status
+    if (sortBy) {
+      params.sort_by = sortBy
+      params.sort_order = sortOrder
+    }
 
     return apiClient.get('/contacts', { params })
   },
@@ -85,5 +96,10 @@ export default {
 
   restoreContact(id) {
     return apiClient.put(`/contacts/${id}/restore`)
+  },
+
+  // Dashboard methods
+  getDashboardStats() {
+    return apiClient.get('/dashboard/stats')
   },
 }
