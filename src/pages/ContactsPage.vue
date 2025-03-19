@@ -25,33 +25,70 @@
         </q-input>
       </div>
 
-      <!-- Filter Tabs (WhatsApp style) with collapsible functionality -->
-      <div class="bg-white rounded-lg shadow-sm mb-4 overflow-x-auto">
-        <div class="filter-tabs flex p-2">
-          <!-- Status Filters -->
+      <!-- Unified Filter Section (WhatsApp style) -->
+      <div class="bg-white rounded-lg shadow-sm mb-4 overflow-hidden">
+        <div class="flex justify-between items-center px-4 py-2 border-b border-gray-200">
+          <div class="text-body1 font-medium text-gray-400">Filters</div>
+          <q-btn
+            v-if="hasActiveFilters"
+            flat
+            dense
+            color="primary"
+            label="Clear All"
+            @click="resetFilters"
+            size="sm"
+          />
+        </div>
+
+        <div class="filter-tabs overflow-x-auto whitespace-nowrap p-2 pb-1">
+          <!-- All Contacts Filter -->
           <q-btn
             flat
             no-caps
-            :color="activeStatusFilter === null ? 'primary' : 'grey-7'"
-            label="All"
+            :color="!hasActiveFilters ? 'primary' : 'grey-7'"
+            label="Active"
             class="q-px-md filter-tab"
-            @click="setStatusFilter(null)"
+            :class="{ 'q-btn--active': !hasActiveFilters }"
+            @click="resetFilters"
           />
 
-          <!-- Show limited filters by default -->
+          <!-- Trashed Filters (integrated into main filter tabs) -->
+          <q-btn
+            flat
+            no-caps
+            :color="activeTrashedFilter === 'with' ? 'primary' : 'grey-7'"
+            label="All"
+            class="q-px-md filter-tab"
+            :class="{ 'q-btn--active': activeTrashedFilter === 'with' }"
+            @click="setTrashedFilter('with')"
+          />
+
+          <q-btn
+            flat
+            no-caps
+            :color="activeTrashedFilter === 'only' ? 'primary' : 'grey-7'"
+            label="Deleted"
+            class="q-px-md filter-tab"
+            :class="{ 'q-btn--active': activeTrashedFilter === 'only' }"
+            @click="setTrashedFilter('only')"
+          />
+
+          <!-- Status Filters -->
           <q-btn
             v-for="status in visibleStatusFilters"
-            :key="status.value"
+            :key="`status-${status.value}`"
             flat
             no-caps
             :color="activeStatusFilter === status.value ? 'primary' : 'grey-7'"
             :label="status.label"
             class="q-px-md filter-tab"
+            :class="{ 'q-btn--active': activeStatusFilter === status.value }"
             @click="setStatusFilter(status.value)"
           />
 
           <!-- More filters button -->
           <q-btn
+            v-if="hiddenStatusFilters.length > 0"
             flat
             no-caps
             icon="more_horiz"
@@ -63,7 +100,7 @@
               <q-list dense style="min-width: 150px">
                 <q-item
                   v-for="status in hiddenStatusFilters"
-                  :key="status.value"
+                  :key="`menu-${status.value}`"
                   clickable
                   v-close-popup
                   @click="setStatusFilter(status.value)"
@@ -79,75 +116,34 @@
             </q-menu>
           </q-btn>
         </div>
-      </div>
 
-      <!-- Trashed Filter Pills (right-aligned) -->
-      <div class="flex justify-end mb-4">
-        <div class="bg-white rounded-lg shadow-sm inline-flex">
-          <q-btn
-            flat
-            no-caps
-            size="sm"
-            :color="activeTrashedFilter === null ? 'primary' : 'grey-7'"
-            label="Active"
-            class="q-px-sm"
-            @click="setTrashedFilter(null)"
-          />
-          <q-btn
-            flat
-            no-caps
-            size="sm"
-            :color="activeTrashedFilter === 'with' ? 'primary' : 'grey-7'"
-            label="All"
-            class="q-px-sm"
-            @click="setTrashedFilter('with')"
-          />
-          <q-btn
-            flat
-            no-caps
-            size="sm"
-            :color="activeTrashedFilter === 'only' ? 'primary' : 'grey-7'"
-            label="Deleted"
-            class="q-px-sm"
-            @click="setTrashedFilter('only')"
-          />
-        </div>
-      </div>
-
-      <!-- Active Filters Display -->
-      <div v-if="hasActiveFilters" class="flex justify-end mb-4">
-        <div class="flex items-center">
-          <span class="text-sm text-gray-600 mr-2">Filters:</span>
-          <q-chip
-            v-if="activeStatusFilter"
-            dense
-            removable
-            :color="getStatusColor(activeStatusFilter)"
-            text-color="white"
-            @remove="setStatusFilter(null)"
-          >
-            {{ activeStatusFilter }}
-          </q-chip>
-          <q-chip
-            v-if="activeTrashedFilter"
-            dense
-            removable
-            color="grey"
-            text-color="white"
-            @remove="setTrashedFilter(null)"
-          >
-            {{ activeTrashedFilter === 'only' ? 'Deleted' : 'All' }}
-          </q-chip>
-          <q-btn
-            v-if="hasActiveFilters"
-            flat
-            dense
-            color="primary"
-            label="Clear All"
-            @click="resetFilters"
-            class="q-ml-sm"
-            size="sm"
-          />
+        <!-- Active Filters Chips (when filters are active) -->
+        <div v-if="hasActiveFilters" class="px-4 py-2 bg-gray-50 active-filters-section">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm text-gray-600">Active filters:</span>
+            <q-chip
+              v-if="activeStatusFilter"
+              dense
+              removable
+              :color="getStatusColor(activeStatusFilter)"
+              text-color="white"
+              @remove="setStatusFilter(null)"
+              size="sm"
+            >
+              {{ activeStatusFilter }}
+            </q-chip>
+            <q-chip
+              v-if="activeTrashedFilter"
+              dense
+              removable
+              color="grey"
+              text-color="white"
+              @remove="setTrashedFilter(null)"
+              size="sm"
+            >
+              {{ activeTrashedFilter === 'only' ? 'Deleted' : 'All Records' }}
+            </q-chip>
+          </div>
         </div>
       </div>
 
@@ -195,7 +191,7 @@
           </div>
         </template>
 
-        <!-- Contact list (WhatsApp style) -->
+        <!-- Contact list -->
         <template v-else>
           <q-list separator class="contact-list" v-if="!tableLoading">
             <q-item
@@ -389,16 +385,16 @@ watch(
 // Status colors
 const getStatusColor = (status) => {
   const colors = {
-    New: 'blue-4',
-    Initiated: 'purple-3',
-    Submitted: 'teal-3',
-    'In Review': 'amber-4',
-    Approved: 'green-3',
-    Rejected: 'pink-3',
-    Assigned: 'indigo-3',
+    New: 'blue-5',
+    Initiated: 'purple-4',
+    Submitted: 'teal-4',
+    'In Review': 'amber-5',
+    Approved: 'green-4',
+    Rejected: 'pink-4',
+    Assigned: 'indigo-4',
     Finalized: 'green-6',
   }
-  return colors[status] || 'grey-5'
+  return colors[status] || 'grey-6'
 }
 
 // State
@@ -608,9 +604,6 @@ const restoreContact = async () => {
 }
 
 .filter-tabs {
-  padding-bottom: 2px;
-  overflow-x: auto;
-  white-space: nowrap;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
 }
@@ -622,16 +615,23 @@ const restoreContact = async () => {
 .filter-tab {
   position: relative;
   margin-right: 4px;
+  border-radius: 16px;
+  transition: all 0.2s;
 }
 
+.filter-tab.q-btn--active {
+  background-color: rgba(var(--q-primary-rgb), 0.1);
+}
+
+/* WhatsApp style underline for active tabs */
 .filter-tab:after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 15%;
+  right: 15%;
   height: 3px;
-  border-radius: 3px;
+  border-radius: 3px 3px 0 0;
   background-color: var(--q-primary);
   opacity: 0;
   transition: opacity 0.2s;
@@ -644,5 +644,22 @@ const restoreContact = async () => {
 .filter-menu {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.active-filters-section {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .filter-tab {
+    padding-left: 8px;
+    padding-right: 8px;
+    min-width: auto;
+  }
+
+  .filter-tabs {
+    padding: 8px 8px 6px;
+  }
 }
 </style>
