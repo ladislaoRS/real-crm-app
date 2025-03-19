@@ -25,7 +25,7 @@
         </q-input>
       </div>
 
-      <!-- Filter Tabs (WhatsApp style) -->
+      <!-- Filter Tabs (WhatsApp style) with collapsible functionality -->
       <div class="bg-white rounded-lg shadow-sm mb-4 overflow-x-auto">
         <div class="filter-tabs flex p-2">
           <!-- Status Filters -->
@@ -37,8 +37,10 @@
             class="q-px-md filter-tab"
             @click="setStatusFilter(null)"
           />
+
+          <!-- Show limited filters by default -->
           <q-btn
-            v-for="status in statusList"
+            v-for="status in visibleStatusFilters"
             :key="status.value"
             flat
             no-caps
@@ -47,6 +49,35 @@
             class="q-px-md filter-tab"
             @click="setStatusFilter(status.value)"
           />
+
+          <!-- More filters button -->
+          <q-btn
+            flat
+            no-caps
+            icon="more_horiz"
+            class="q-px-md filter-tab"
+            color="grey-7"
+            @click="toggleMoreFilters"
+          >
+            <q-menu anchor="bottom right" self="top right" :offset="[0, 8]" class="filter-menu">
+              <q-list dense style="min-width: 150px">
+                <q-item
+                  v-for="status in hiddenStatusFilters"
+                  :key="status.value"
+                  clickable
+                  v-close-popup
+                  @click="setStatusFilter(status.value)"
+                >
+                  <q-item-section>
+                    <q-item-label>{{ status.label }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side v-if="activeStatusFilter === status.value">
+                    <q-icon name="check" color="primary" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
         </div>
       </div>
 
@@ -301,15 +332,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useContactsStore } from 'src/stores/contacts.store'
 import { format, isToday, isYesterday, isThisYear } from 'date-fns'
+import { useWindowSize } from '@vueuse/core'
 
 const router = useRouter()
 const $q = useQuasar()
 const contactsStore = useContactsStore()
+const { width } = useWindowSize()
 
 // Status options - without the "All Statuses" option (handled separately)
 const statusList = [
@@ -322,6 +355,36 @@ const statusList = [
   { label: 'Assigned', value: 'Assigned' },
   { label: 'Finalized', value: 'Finalized' },
 ]
+
+// Visible and hidden status filters
+const maxVisibleFilters = ref(3) // Default number of visible filters
+const visibleStatusFilters = computed(() => {
+  return statusList.slice(0, maxVisibleFilters.value)
+})
+const hiddenStatusFilters = computed(() => {
+  return statusList.slice(maxVisibleFilters.value)
+})
+
+// Update visible filters based on screen size
+watch(
+  () => width.value,
+  (newWidth) => {
+    if (newWidth < 640) {
+      // Small mobile screens
+      maxVisibleFilters.value = 2
+    } else if (newWidth < 768) {
+      // Larger mobile screens
+      maxVisibleFilters.value = 3
+    } else if (newWidth < 1024) {
+      // Tablets
+      maxVisibleFilters.value = 4
+    } else {
+      // Desktop
+      maxVisibleFilters.value = 5
+    }
+  },
+  { immediate: true },
+)
 
 // Status colors
 const getStatusColor = (status) => {
@@ -354,6 +417,11 @@ const currentPage = ref(1)
 const hasActiveFilters = computed(() => {
   return activeStatusFilter.value !== null || activeTrashedFilter.value !== null
 })
+
+// Toggle more filters - just a placeholder function for the menu
+const toggleMoreFilters = () => {
+  // The menu is handled by q-menu
+}
 
 // Load data on mount
 onMounted(async () => {
@@ -571,5 +639,10 @@ const restoreContact = async () => {
 
 .filter-tab.q-btn--active:after {
   opacity: 1;
+}
+
+.filter-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 </style>
