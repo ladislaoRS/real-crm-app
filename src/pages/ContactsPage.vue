@@ -219,6 +219,12 @@
                   <!-- Action buttons with Tailwind styling -->
                   <div class="flex items-center space-x-2 mt-1">
                     <button
+                      class="w-7 h-7 rounded-full flex items-center justify-center bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
+                      @click="navigateToEditStatus(contact.id)"
+                    >
+                      <i class="material-icons text-sm">sync_alt</i>
+                    </button>
+                    <button
                       v-if="!contact.deleted_at"
                       class="w-7 h-7 rounded-full flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                       @click.stop="confirmDelete(contact)"
@@ -261,34 +267,68 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Dialog -->
+    <!-- Delete Confirmation Dialog with Tailwind styling -->
     <q-dialog v-model="deleteDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center">
-          <q-avatar icon="delete" color="negative" text-color="white" />
-          <span class="q-ml-sm">Delete {{ selectedContact?.name || 'this contact' }}?</span>
-        </q-card-section>
+      <div class="bg-white rounded-lg shadow-xl overflow-hidden max-w-md w-full">
+        <!-- Dialog header -->
+        <div class="p-4 flex items-center border-b border-gray-200">
+          <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+            <i class="material-icons text-red-600">delete</i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">
+            Delete {{ selectedContact?.name || 'this contact' }}?
+          </h3>
+        </div>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" v-close-popup />
-          <q-btn flat label="Delete" color="negative" @click="deleteContact" v-close-popup />
-        </q-card-actions>
-      </q-card>
+        <!-- Dialog actions -->
+        <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-3">
+          <button
+            class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            v-close-popup
+          >
+            Cancel
+          </button>
+          <button
+            class="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+            @click="deleteContact"
+            v-close-popup
+          >
+            Delete
+          </button>
+        </div>
+      </div>
     </q-dialog>
 
-    <!-- Restore Confirmation Dialog -->
+    <!-- Restore Confirmation Dialog with Tailwind styling -->
     <q-dialog v-model="restoreDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center">
-          <q-avatar icon="restore" color="positive" text-color="white" />
-          <span class="q-ml-sm">Restore {{ selectedContact?.name || 'this contact' }}?</span>
-        </q-card-section>
+      <div class="bg-white rounded-lg shadow-xl overflow-hidden max-w-md w-full">
+        <!-- Dialog header -->
+        <div class="p-4 flex items-center border-b border-gray-200">
+          <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+            <i class="material-icons text-green-600">restore</i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">
+            Restore {{ selectedContact?.name || 'this contact' }}?
+          </h3>
+        </div>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" v-close-popup />
-          <q-btn flat label="Restore" color="positive" @click="restoreContact" v-close-popup />
-        </q-card-actions>
-      </q-card>
+        <!-- Dialog actions -->
+        <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-3">
+          <button
+            class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            v-close-popup
+          >
+            Cancel
+          </button>
+          <button
+            class="px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            @click="restoreContact"
+            v-close-popup
+          >
+            Restore
+          </button>
+        </div>
+      </div>
     </q-dialog>
   </q-page>
 </template>
@@ -446,6 +486,10 @@ const navigateToCreate = () => {
 
 const navigateToEdit = (id) => {
   router.push({ name: 'contact-edit', params: { id } })
+}
+
+const navigateToEditStatus = (id) => {
+  router.push({ name: 'contact-edit-status', params: { id } })
 }
 
 const confirmDelete = (contact) => {

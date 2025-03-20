@@ -7,7 +7,7 @@
         <h1 class="text-3xl font-bold text-gray-800 ml-2">
           <span v-if="contactsStore.loading">Loading...</span>
           <span v-else-if="contactsStore.contact">Edit {{ contactsStore.contact.name }}</span>
-          <span v-else>Edit Contact</span>
+          <span v-else>Update Status</span>
         </h1>
       </div>
 
