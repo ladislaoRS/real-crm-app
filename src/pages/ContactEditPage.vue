@@ -297,7 +297,6 @@ const form = ref({
 
 // Status options
 const statusOptions = [
-  null, // Allow no status
   'New',
   'Initiated',
   'Submitted',
