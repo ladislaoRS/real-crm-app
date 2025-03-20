@@ -31,75 +31,6 @@
       <template v-else-if="contactsStore.contact">
         <div class="bg-white rounded-lg shadow-sm p-6">
           <q-form @submit="updateContact" class="space-y-6" ref="contactForm">
-            <!-- Status Section -->
-            <div class="bg-gray-50 p-4 rounded-lg mb-6">
-              <h2 class="text-lg font-semibold text-gray-700 mb-4">Status Information</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Status -->
-                <div>
-                  <q-select
-                    v-model="form.status"
-                    :options="statusOptions"
-                    label="Contact Status"
-                    class="w-full"
-                    outlined
-                    map-options
-                    emit-value
-                    lazy-rules
-                    bottom-slots
-                  >
-                    <template v-slot:selected-item="scope">
-                      <div class="flex items-center">
-                        <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
-                        <span>{{ scope.opt }}</span>
-                      </div>
-                    </template>
-                    <template v-slot:option="scope">
-                      <q-item v-bind="scope.itemProps">
-                        <q-item-section>
-                          <q-item-label>
-                            <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
-                            {{ scope.opt }}
-                          </q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </template>
-                  </q-select>
-                </div>
-
-                <!-- Status Updated Date (read-only) -->
-                <div>
-                  <q-input
-                    v-if="contactsStore.contact.status_updated_at"
-                    v-model="statusUpdatedDate"
-                    label="Status Last Updated"
-                    class="w-full"
-                    outlined
-                    readonly
-                    disable
-                  />
-                </div>
-
-                <!-- Status Notes -->
-                <div class="md:col-span-2">
-                  <q-input
-                    v-model="form.status_notes"
-                    label="Status Notes"
-                    type="textarea"
-                    rows="3"
-                    class="w-full"
-                    outlined
-                    lazy-rules
-                    bottom-slots
-                    :rules="[
-                      (val) => !val || val.length <= 500 || 'Notes must be 500 characters or less',
-                    ]"
-                    hint="Add any relevant notes about this contact's status"
-                  />
-                </div>
-              </div>
-            </div>
-
             <!-- Personal Information -->
             <h2 class="text-lg font-semibold text-gray-700 mb-4">Personal Information</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -249,6 +180,73 @@
                   hint="Format: 12345 or 12345-6789"
                   lazy-rules
                   bottom-slots
+                />
+              </div>
+            </div>
+
+            <!-- Status Section -->
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Status Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Status -->
+              <div>
+                <q-select
+                  v-model="form.status"
+                  :options="statusOptions"
+                  label="Contact Status"
+                  class="w-full"
+                  outlined
+                  map-options
+                  emit-value
+                  lazy-rules
+                  bottom-slots
+                >
+                  <template v-slot:selected-item="scope">
+                    <div class="flex items-center">
+                      <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
+                      <span>{{ scope.opt }}</span>
+                    </div>
+                  </template>
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>
+                          <q-badge :color="getStatusColor(scope.opt)" class="q-mr-xs" />
+                          {{ scope.opt }}
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
+              </div>
+
+              <!-- Status Updated Date (read-only) -->
+              <div>
+                <q-input
+                  v-if="contactsStore.contact.status_updated_at"
+                  v-model="statusUpdatedDate"
+                  label="Status Last Updated"
+                  class="w-full"
+                  outlined
+                  readonly
+                  disable
+                />
+              </div>
+
+              <!-- Status Notes -->
+              <div class="md:col-span-2">
+                <q-input
+                  v-model="form.status_notes"
+                  label="Status Notes"
+                  type="textarea"
+                  rows="3"
+                  class="w-full"
+                  outlined
+                  lazy-rules
+                  bottom-slots
+                  :rules="[
+                    (val) => !val || val.length <= 500 || 'Notes must be 500 characters or less',
+                  ]"
+                  hint="Add any relevant notes about this contact's status"
                 />
               </div>
             </div>
