@@ -16,6 +16,7 @@
           dense
           class="q-pa-sm"
           @update:model-value="debouncedSearch"
+          @clear="resetFilters"
           :loading="searchLoading"
           bg-color="white"
         >
