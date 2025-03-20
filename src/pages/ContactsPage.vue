@@ -216,28 +216,22 @@
                     {{ formatDate(contact.created_at) }}
                   </q-item-label>
 
-                  <!-- Action buttons positioned below -->
-                  <div class="row items-center no-wrap q-mt-xs">
-                    <q-btn
+                  <!-- Action buttons with Tailwind styling -->
+                  <div class="flex items-center space-x-2 mt-1">
+                    <button
                       v-if="!contact.deleted_at"
-                      flat
-                      round
-                      dense
-                      size="sm"
-                      color="negative"
-                      icon="delete"
+                      class="w-7 h-7 rounded-full flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                       @click.stop="confirmDelete(contact)"
-                    />
-                    <q-btn
+                    >
+                      <i class="material-icons text-sm">delete</i>
+                    </button>
+                    <button
                       v-else
-                      flat
-                      round
-                      dense
-                      size="sm"
-                      color="positive"
-                      icon="restore"
+                      class="w-7 h-7 rounded-full flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
                       @click.stop="confirmRestore(contact)"
-                    />
+                    >
+                      <i class="material-icons text-sm">restore</i>
+                    </button>
                   </div>
                 </div>
               </q-item-section>

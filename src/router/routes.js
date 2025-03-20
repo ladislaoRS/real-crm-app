@@ -26,6 +26,12 @@ const routes = [
         component: () => import('pages/ContactEditPage.vue'),
         props: true,
       },
+      {
+        path: 'contacts/:id/edit/status',
+        name: 'contact-edit-status',
+        component: () => import('pages/ContactEditStatusPage.vue'),
+        props: true,
+      },
     ],
   },
 
