@@ -171,7 +171,7 @@
               :key="contact.id"
               clickable
               v-ripple
-              @click="navigateToEdit(contact.id)"
+              @click="navigateToEditStatus(contact.id)"
               :class="{ 'deleted-contact': contact.deleted_at }"
             >
               <q-item-section avatar>
@@ -220,10 +220,10 @@
                   <!-- Action buttons with Tailwind styling -->
                   <div class="flex items-center space-x-2 mt-1">
                     <button
-                      class="w-7 h-7 rounded-full flex items-center justify-center bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
-                      @click="navigateToEditStatus(contact.id)"
+                      class="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                      @click="navigateToEdit(contact.id)"
                     >
-                      <i class="material-icons text-sm">sync_alt</i>
+                      <i class="material-icons text-sm">edit</i>
                     </button>
                     <button
                       v-if="!contact.deleted_at"

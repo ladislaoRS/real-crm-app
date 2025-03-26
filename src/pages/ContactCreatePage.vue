@@ -132,7 +132,7 @@
             </div>
 
             <!-- Country (Fixed to US) -->
-            <div>
+            <div hidden>
               <q-input
                 v-model="form.country"
                 label="Country"
