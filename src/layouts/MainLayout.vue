@@ -25,7 +25,7 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
       <q-list>
-        <q-item-label header>Navigation</q-item-label>
+        <q-item-label header>CRM</q-item-label>
 
         <q-item clickable v-ripple :to="{ name: 'dashboard' }" exact active-class="text-primary">
           <q-item-section avatar>

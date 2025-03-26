@@ -1,56 +1,71 @@
 <template>
   <!-- Notice we're not using q-page directly -->
-  <div class="flex flex-center bg-gray-100 fullscreen">
+  <div class="flex flex-center bg-gray-100 fullscreen min-h-screen px-4 sm:px-0">
     <div class="w-full max-w-md px-8 py-6 bg-white rounded-lg shadow-md">
       <div class="text-center mb-8">
         <h1 class="text-2xl font-bold text-gray-800">Real CRM</h1>
         <p class="text-gray-600">Log in to your account</p>
       </div>
 
-      <q-form @submit="onSubmit" class="space-y-4">
+      <!-- Form -->
+      <form @submit.prevent="onSubmit" class="space-y-6">
+        <!-- Email -->
         <div>
-          <q-input
+          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            id="email"
             v-model="email"
-            label="Email"
             type="email"
             autocomplete="email"
-            class="w-full"
-            :rules="[(val) => !!val || 'Email is required']"
+            required
+            class="mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </div>
 
+        <!-- Password -->
         <div>
-          <q-input
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input
+            id="password"
             v-model="password"
-            label="Password"
             type="password"
             autocomplete="current-password"
-            class="w-full"
-            :rules="[(val) => !!val || 'Password is required']"
+            required
+            class="mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </div>
 
-        <div class="flex items-center">
-          <q-checkbox v-model="remember" label="Remember me" />
+        <!-- Remember me -->
+        <div class="flex items-center space-x-2">
+          <input
+            id="remember"
+            type="checkbox"
+            v-model="remember"
+            class="w-4 h-4 text-blue-600 rounded border-gray-300"
+          />
+          <label for="remember" class="text-sm text-gray-600">Remember me</label>
         </div>
 
+        <!-- Error message -->
         <div
           v-if="authStore.error"
-          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm"
         >
           {{ authStore.error }}
         </div>
 
+        <!-- Submit -->
         <div>
-          <q-btn
+          <button
             type="submit"
-            color="primary"
-            class="w-full"
-            :loading="authStore.loading"
-            label="Login"
-          />
+            :disabled="authStore.loading"
+            class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-60"
+          >
+            <span v-if="!authStore.loading">Login</span>
+            <span v-else>Loading...</span>
+          </button>
         </div>
-      </q-form>
+      </form>
     </div>
   </div>
 </template>
