@@ -1,33 +1,41 @@
 <template>
-  <q-page class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto py-6 px-4">
+  <q-page class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto py-8 px-4 sm:px-6">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-800">Contacts</h1>
-        <q-btn round color="primary" icon="add" @click="navigateToCreate" />
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Contacts</h1>
+        <q-btn
+          round
+          color="primary"
+          icon="add"
+          @click="navigateToCreate"
+          class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md transition-all duration-300"
+        />
       </div>
 
       <!-- Search -->
-      <div class="bg-white rounded-lg shadow-sm mb-4">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-5 overflow-hidden">
         <q-input
           v-model="search"
           placeholder="Search contacts..."
           clearable
           dense
-          class="q-pa-sm"
+          class="q-pa-md"
           @update:model-value="debouncedSearch"
           @clear="resetFilters"
           :loading="searchLoading"
           bg-color="white"
         >
           <template v-slot:prepend>
-            <q-icon name="search" />
+            <q-icon name="search" class="text-gray-400" />
           </template>
         </q-input>
       </div>
 
       <!-- WhatsApp Style Filter Chips - All Light Gray Base -->
-      <div class="filter-chips-container bg-white rounded-lg shadow-sm mb-4 p-3 overflow-x-auto">
+      <div
+        class="filter-chips-container bg-white rounded-xl shadow-sm border border-gray-100 mb-5 p-4 overflow-x-auto"
+      >
         <!-- All/Active filter chip -->
         <q-chip
           clickable
@@ -36,6 +44,7 @@
             'inactive-chip': hasActiveFilters,
           }"
           @click="resetFilters"
+          class="transition-all duration-200"
         >
           Active
         </q-chip>
@@ -48,6 +57,7 @@
             'inactive-chip': activeTrashedFilter !== 'with',
           }"
           @click="setTrashedFilter('with')"
+          class="transition-all duration-200"
         >
           All
         </q-chip>
@@ -59,6 +69,7 @@
             'inactive-chip': activeTrashedFilter !== 'only',
           }"
           @click="setTrashedFilter('only')"
+          class="transition-all duration-200"
         >
           Deleted
         </q-chip>
@@ -73,22 +84,25 @@
             'inactive-chip': activeStatusFilter !== status.value,
           }"
           @click="setStatusFilter(status.value)"
+          class="transition-all duration-200"
         >
           {{ status.label }}
         </q-chip>
       </div>
 
       <!-- Active Filters (only show when filters are active) -->
-      <div v-if="hasActiveFilters" class="bg-white rounded-lg shadow-sm mb-4 p-3">
-        <div class="flex items-center gap-2">
+      <div
+        v-if="hasActiveFilters"
+        class="bg-white rounded-xl shadow-sm border border-gray-100 mb-5 p-4"
+      >
+        <div class="flex flex-wrap items-center gap-2">
           <span class="text-sm text-gray-600 font-medium">Active filters:</span>
           <div class="flex flex-wrap gap-2">
             <q-chip
               v-if="activeStatusFilter"
               dense
               removable
-              color="primary"
-              text-color="white"
+              class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
               @remove="setStatusFilter(null)"
               size="sm"
             >
@@ -98,8 +112,7 @@
               v-if="activeTrashedFilter"
               dense
               removable
-              color="primary"
-              text-color="white"
+              class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
               @remove="setTrashedFilter(null)"
               size="sm"
             >
@@ -109,25 +122,25 @@
           <q-btn
             flat
             dense
-            color="primary"
+            color="blue-600"
             label="Clear All"
             @click="resetFilters"
             size="sm"
-            class="ml-auto"
+            class="ml-auto bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-all duration-200"
             v-if="hasActiveFilters"
           />
         </div>
       </div>
 
       <!-- Main Content -->
-      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <!-- Loading state -->
         <template v-if="contactsStore.loading && !hasLoadedInitially">
-          <div class="p-2">
+          <div class="p-4">
             <q-list separator>
               <q-item v-for="i in 7" :key="i" class="q-py-md">
                 <q-item-section avatar>
-                  <q-skeleton type="circle" size="40px" />
+                  <q-skeleton type="circle" size="48px" />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>
@@ -147,19 +160,40 @@
 
         <!-- Error state -->
         <template v-else-if="contactsStore.error">
-          <div class="bg-red-100 border border-red-400 text-red-700 p-4">
-            {{ contactsStore.error }}
-            <div class="mt-3">
-              <q-btn color="primary" @click="fetchContacts">Retry</q-btn>
+          <div class="p-6 flex flex-col items-center justify-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <i class="material-icons text-red-500 text-2xl">error_outline</i>
             </div>
+            <div class="text-red-600 font-medium mb-2">Error Loading Contacts</div>
+            <div class="text-gray-500 text-sm mb-6">{{ contactsStore.error }}</div>
+            <q-btn
+              color="primary"
+              @click="fetchContacts"
+              class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md px-6 rounded-lg transition-all duration-300"
+              unelevated
+            >
+              Retry
+            </q-btn>
           </div>
         </template>
 
         <!-- Empty state -->
         <template v-else-if="contactsStore.contacts.length === 0">
-          <div class="p-8 text-center">
-            <div class="text-gray-500 mb-4">No contacts found.</div>
-            <q-btn color="primary" label="Create Your First Contact" @click="navigateToCreate" />
+          <div class="p-10 text-center">
+            <div
+              class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <i class="material-icons text-blue-400 text-3xl">people</i>
+            </div>
+            <div class="text-gray-600 mb-6">No contacts found matching your criteria.</div>
+            <q-btn
+              color="primary"
+              label="Create New Contact"
+              @click="navigateToCreate"
+              class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md px-6 rounded-lg transition-all duration-300"
+              unelevated
+              icon="add"
+            />
           </div>
         </template>
 
@@ -173,14 +207,15 @@
               v-ripple
               @click="navigateToEditStatus(contact.id)"
               :class="{ 'deleted-contact': contact.deleted_at }"
+              class="px-4 py-3 hover:bg-blue-50 transition-all duration-200"
             >
               <q-item-section avatar>
                 <q-avatar
-                  color="primary"
-                  text-color="white"
+                  :color="contact.deleted_at ? 'gray-200' : 'blue-100'"
+                  :text-color="contact.deleted_at ? 'gray-500' : 'blue-700'"
                   size="48px"
                   font-size="16px"
-                  class="shadow-sm"
+                  class="shadow-sm border border-gray-200"
                 >
                   {{ getInitials(contact.name) }}
                 </q-avatar>
@@ -188,12 +223,14 @@
 
               <q-item-section>
                 <!-- Name with inline custom tailwind-style badges -->
-                <q-item-label class="text-weight-medium flex items-center text-gray-600">
+                <q-item-label
+                  class="text-weight-medium flex items-center flex-wrap gap-2 text-gray-800"
+                >
                   {{ contact.name }}
                   <!-- Custom status badge using tailwind classes -->
                   <span
                     v-if="contact.status"
-                    class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ml-2 ring-1 ring-inset"
+                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
                     :class="getStatusTailwindClasses(contact.status)"
                   >
                     {{ contact.status }}
@@ -201,40 +238,44 @@
                   <!-- Custom deleted badge -->
                   <span
                     v-if="contact.deleted_at"
-                    class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10 ml-2"
+                    class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20"
                   >
                     Deleted
                   </span>
                 </q-item-label>
-                <q-item-label caption>
+                <q-item-label caption class="text-gray-500 mt-1 flex items-center">
+                  <i class="material-icons text-xs mr-1">{{
+                    contact.phone ? 'phone' : 'phone_disabled'
+                  }}</i>
                   {{ contact.phone ? contact.phone : 'Missing phone...' }}
                 </q-item-label>
               </q-item-section>
 
               <q-item-section side>
                 <div class="flex flex-col items-end">
-                  <q-item-label caption>
+                  <q-item-label caption class="text-gray-500 flex items-center text-xs">
+                    <i class="material-icons text-xs mr-1">event</i>
                     {{ formatDate(contact.created_at) }}
                   </q-item-label>
 
                   <!-- Action buttons with Tailwind styling -->
-                  <div class="flex items-center space-x-2 mt-1">
+                  <div class="flex items-center space-x-2 mt-2">
                     <button
-                      class="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                      @click="navigateToEdit(contact.id)"
+                      class="w-8 h-8 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200 shadow-sm"
+                      @click.stop="navigateToEdit(contact.id)"
                     >
                       <i class="material-icons text-sm">edit</i>
                     </button>
                     <button
                       v-if="!contact.deleted_at"
-                      class="w-7 h-7 rounded-full flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      class="w-8 h-8 rounded-full flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200 shadow-sm"
                       @click.stop="confirmDelete(contact)"
                     >
                       <i class="material-icons text-sm">delete</i>
                     </button>
                     <button
                       v-else
-                      class="w-7 h-7 rounded-full flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                      class="w-8 h-8 rounded-full flex items-center justify-center bg-green-50 text-green-600 hover:bg-green-100 transition-all duration-200 shadow-sm"
                       @click.stop="confirmRestore(contact)"
                     >
                       <i class="material-icons text-sm">restore</i>
@@ -245,12 +286,18 @@
             </q-item>
           </q-list>
 
-          <div v-else class="flex justify-center items-center p-4">
-            <q-spinner color="primary" size="2em" />
+          <div v-else class="flex justify-center items-center p-8">
+            <q-spinner color="primary" size="3em" />
+            <span class="text-gray-500 ml-3">Loading contacts...</span>
           </div>
 
           <!-- Pagination controls -->
-          <div class="flex justify-center p-3 bg-gray-50">
+          <div class="flex justify-between items-center p-4 bg-gray-50 border-t border-gray-100">
+            <div class="text-sm text-gray-500">
+              {{ contactsStore.pagination.perPage }} per page / Total:
+              {{ contactsStore.pagination.total }}
+            </div>
+
             <q-pagination
               v-model="currentPage"
               :max="contactsStore.pagination.lastPage"
@@ -258,11 +305,11 @@
               direction-links
               boundary-links
               @update:model-value="onPageChange"
+              color="primary"
+              active-color="primary"
+              active-text-color="white"
+              class="shadow-sm"
             />
-            <div class="text-caption text-grey q-ml-md self-center">
-              {{ contactsStore.pagination.perPage }} per page / Total:
-              {{ contactsStore.pagination.total }}
-            </div>
           </div>
         </template>
       </div>
@@ -270,27 +317,35 @@
 
     <!-- Delete Confirmation Dialog with Tailwind styling -->
     <q-dialog v-model="deleteDialog" persistent>
-      <div class="bg-white rounded-lg shadow-xl overflow-hidden max-w-md w-full">
+      <div
+        class="bg-white rounded-xl shadow-xl overflow-hidden max-w-md w-full border border-gray-100"
+      >
         <!-- Dialog header -->
-        <div class="p-4 flex items-center border-b border-gray-200">
-          <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
-            <i class="material-icons text-red-600">delete</i>
+        <div class="p-5 flex items-center border-b border-gray-100">
+          <div
+            class="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center mr-4 shadow-sm"
+          >
+            <i class="material-icons text-red-600 text-xl">delete</i>
           </div>
-          <h3 class="text-lg font-medium text-gray-900">
+          <h3 class="text-lg font-medium text-gray-800">
             Delete {{ selectedContact?.name || 'this contact' }}?
           </h3>
         </div>
 
+        <div class="p-5 text-gray-600 text-sm">
+          This will move the contact to trash. You can restore it later if needed.
+        </div>
+
         <!-- Dialog actions -->
-        <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-3">
+        <div class="px-5 py-4 bg-gray-50 flex justify-end space-x-3 border-t border-gray-100">
           <button
-            class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all duration-200 shadow-sm"
             v-close-popup
           >
             Cancel
           </button>
           <button
-            class="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-sm"
             @click="deleteContact"
             v-close-popup
           >
@@ -302,27 +357,35 @@
 
     <!-- Restore Confirmation Dialog with Tailwind styling -->
     <q-dialog v-model="restoreDialog" persistent>
-      <div class="bg-white rounded-lg shadow-xl overflow-hidden max-w-md w-full">
+      <div
+        class="bg-white rounded-xl shadow-xl overflow-hidden max-w-md w-full border border-gray-100"
+      >
         <!-- Dialog header -->
-        <div class="p-4 flex items-center border-b border-gray-200">
-          <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
-            <i class="material-icons text-green-600">restore</i>
+        <div class="p-5 flex items-center border-b border-gray-100">
+          <div
+            class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4 shadow-sm"
+          >
+            <i class="material-icons text-green-600 text-xl">restore</i>
           </div>
-          <h3 class="text-lg font-medium text-gray-900">
+          <h3 class="text-lg font-medium text-gray-800">
             Restore {{ selectedContact?.name || 'this contact' }}?
           </h3>
         </div>
 
+        <div class="p-5 text-gray-600 text-sm">
+          This will restore the contact from trash and make it active again.
+        </div>
+
         <!-- Dialog actions -->
-        <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-3">
+        <div class="px-5 py-4 bg-gray-50 flex justify-end space-x-3 border-t border-gray-100">
           <button
-            class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all duration-200 shadow-sm"
             v-close-popup
           >
             Cancel
           </button>
           <button
-            class="px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 shadow-sm"
             @click="restoreContact"
             v-close-popup
           >
@@ -551,27 +614,22 @@ const restoreContact = async () => {
 
 const getStatusTailwindClasses = (status) => {
   const classes = {
-    New: 'bg-blue-50 text-blue-700 ring-blue-600/10',
-    Initiated: 'bg-purple-50 text-purple-700 ring-purple-600/10',
-    Submitted: 'bg-teal-50 text-teal-700 ring-teal-600/10',
-    'In Review': 'bg-amber-50 text-amber-700 ring-amber-600/10',
-    Approved: 'bg-green-50 text-green-700 ring-green-600/10',
-    Rejected: 'bg-pink-50 text-pink-700 ring-pink-600/10',
-    Assigned: 'bg-indigo-50 text-indigo-700 ring-indigo-600/10',
-    Finalized: 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+    New: 'bg-blue-50 text-blue-700 ring-blue-600/20',
+    Initiated: 'bg-purple-50 text-purple-700 ring-purple-600/20',
+    Submitted: 'bg-teal-50 text-teal-700 ring-teal-600/20',
+    'In Review': 'bg-amber-50 text-amber-700 ring-amber-600/20',
+    Approved: 'bg-green-50 text-green-700 ring-green-600/20',
+    Rejected: 'bg-pink-50 text-pink-700 ring-pink-600/20',
+    Assigned: 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
+    Finalized: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
   }
-  return classes[status] || 'bg-gray-50 text-gray-700 ring-gray-600/10'
+  return classes[status] || 'bg-gray-50 text-gray-700 ring-gray-600/20'
 }
 </script>
 
 <style scoped>
 .contact-list .q-item {
-  padding: 10px 16px;
-  transition: background-color 0.2s;
-}
-
-.contact-list .q-item:hover {
-  background-color: #f7f7f7;
+  transition: all 0.2s ease;
 }
 
 .deleted-contact {
@@ -597,31 +655,22 @@ const getStatusTailwindClasses = (status) => {
   display: none; /* Chrome, Safari, Edge */
 }
 
-/* WhatsApp-style filter chips - Light gray base, primary when active */
-.filter-chip {
-  margin: 0;
-  border-radius: 16px;
-  font-size: 0.85rem;
-  padding: 2px 10px;
-  height: 28px;
-  flex-shrink: 0;
-  margin-right: 4px;
-}
-
 /* Active and inactive chip styles */
 .active-chip {
-  background-color: var(--q-primary) !important;
+  background: linear-gradient(to right, #3b82f6, #4f46e5) !important;
   color: white !important;
   font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inactive-chip {
-  background-color: #f0f0f0 !important;
-  color: #606060 !important;
+  background-color: #f3f4f6 !important;
+  color: #4b5563 !important;
+  border: 1px solid #e5e7eb;
 }
 
 .inactive-chip:hover {
-  background-color: #e0e0e0 !important;
+  background-color: #e5e7eb !important;
 }
 
 /* Responsive adjustments */
@@ -630,7 +679,7 @@ const getStatusTailwindClasses = (status) => {
   .active-chip,
   .inactive-chip {
     font-size: 0.8rem;
-    height: 26px;
+    height: 28px;
     padding: 2px 8px;
   }
 
