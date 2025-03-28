@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-gray-50 min-h-screen py-8 px-4 sm:px-6">
+  <q-page class="bg-gray-50 min-h-screen py-8 px-1 sm:px-6">
     <div class="container mx-auto">
       <!-- Header -->
       <div class="flex items-center mb-8">

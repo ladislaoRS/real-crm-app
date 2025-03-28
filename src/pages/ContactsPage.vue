@@ -1,8 +1,8 @@
 <template>
-  <q-page class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto py-8 px-4 sm:px-6">
+  <q-page class="bg-gray-60 min-h-screen">
+    <div class="container mx-auto py-8 px-1 sm:px-6">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex justify-between items-center px-1 mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Contacts</h1>
         <q-btn
           round

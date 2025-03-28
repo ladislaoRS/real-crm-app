@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto py-8 px-4 sm:px-6">
+    <div class="container mx-auto py-8 px-2 sm:px-6">
       <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
 
       <!-- Contact Stats Cards (Mosaic Style) -->

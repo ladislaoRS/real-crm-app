@@ -2,11 +2,12 @@ import axios from 'axios'
 
 // Create axios instance with base URL
 const apiClient = axios.create({
-  baseURL: process.env.API_URL || 'http://pingcrm.test/api',
+  baseURL: process.env.API_URL || 'http://192.168.1.106:8000/api',
   // baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    // 'X-Requested-With': 'XMLHttpRequest',
   },
   withCredentials: true,
 })
